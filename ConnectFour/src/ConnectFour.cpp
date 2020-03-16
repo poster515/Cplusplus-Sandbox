@@ -44,7 +44,7 @@ int main() {
 		num_moves++;
 	}
 
-
+	while(!cin.get()){}
 
 	return 0;
 }

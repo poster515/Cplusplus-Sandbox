@@ -18,7 +18,7 @@ int main(void) {
 	int new_state = 2;
 
 	//create pointer to State object, and construct using test state
-	State *state = new State(new_state);
+	State * state = new State(new_state);
 
 	// now fetch the state of the "state" object and print
 	int get_state = state->getState();
