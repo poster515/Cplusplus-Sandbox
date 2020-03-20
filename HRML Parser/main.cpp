@@ -65,13 +65,13 @@ class TrieNodeBldr {
 };
 
 string HRML_tag_parser(string line){
-    string tag;
-
+    string tag; // all tags are "<tag1 adfads...>"
+    for (int i = 1; i < line.find(" "); i++){ tag.push_back(line[i]); }
     return tag;
 }
 
 vector<vector<string>> HRML_attr_parser(string tag, string line){
-    //inputs: tag name and line of source code
+    //inputs: tag name and line of source code e.g., <tag1 value = "HelloWorld">
     //outputs: vector of two vectors: 1 for attribute names and 1 for attribute values
     /*
         [
@@ -79,14 +79,36 @@ vector<vector<string>> HRML_attr_parser(string tag, string line){
             [attr_val1,  attr_val2,  ...]
         ]
     */
-    vector<vector<string>> attrs;
+    vector<string> attr_names;
+    vector<string> attr_values;
+    
+    int index = 1 + tag.length(); //just save some time and progress past tag name
+    string temp_name;
+    string temp_val;
 
+    while (index < line.length()){
+        //find name first
+        int tag_front = line.find_first_not_of(" ", index); //first non-space character
+        int tag_back = line.find_first_of(" ", tag_front); //next non-space character
+        for(int i = tag_front; i < tag_back; i++){ temp_name.push_back(line[i]); }
+
+        tag = line.find_first_not_of("=", index);
+
+        while(){
+
+        }
+        index++;
+    }
+    vector<vector<string>> attrs;
+    attrs.push_back(attr_names).push_back(attr_values);
     return attrs;
 }
 
-bool tagEnd(string line){
-    return false;
+bool tagEnd(string line){ //returns true if '/' in src code line
+    string delimiter ("/");
+    return (line.find(delimiter) != string::npos);
 }
+
 vector<string> queryTagParser(string query){
     vector<string> query_tags;
 
@@ -94,7 +116,7 @@ vector<string> queryTagParser(string query){
 }
 
 string queryAttrParser(string query){
-    string attribute = " ";
+    string attribute = "~";
 
     return attribute;
 }
@@ -148,10 +170,10 @@ int main() {
         } else if (tag != current_node->getMyTagName()){
             // then we have a new tag, need to create new trie node
             cout << "found new tag, adding new trie node" << endl;
-            vector<vector<string>> attrs = HRML_attr_parser(tag, src_code[i]); 
             // create new node and jump to it
             current_node = current_node->addAndReturnNewNode(tag); 
-            current_node->addAttributes(attrs);        // now add attributes to it
+            // now add attributes to it
+            current_node->addAttributes(HRML_attr_parser(tag, src_code[i]));
         }
     }
     
