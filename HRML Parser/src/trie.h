@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
+//#include "trie.cpp"
 
 using namespace std;
 
@@ -21,15 +22,15 @@ class TrieNode{
         unordered_map<string, string> attributes;
         unordered_map<string, TrieNode *> next_tags;
         TrieNode * parent_tag = nullptr;
+        void delete_nodes(TrieNode * node);
 
     public:
         TrieNode(string tagName, TrieNode * parent){
             tag_name = tagName;
             parent_tag = parent;
         }
-        ~TrieNode(){
+        ~TrieNode();
 
-        }
         void addAttributes(vector<vector<string>> attrs){
             /* [
                     [attr_name1, attr_name2, ...],
