@@ -66,7 +66,9 @@ class TrieNodeBldr {
         TrieNodeBldr(){
             root = new TrieNode("root", nullptr);
         }
-        ~TrieNodeBldr(){}
+        ~TrieNodeBldr(){
+        	delete root;
+        }
 
         TrieNode * getRootAddress(){
             return root;

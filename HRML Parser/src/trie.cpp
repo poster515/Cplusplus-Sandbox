@@ -29,5 +29,4 @@ void TrieNode::delete_nodes(TrieNode * node){
 		}
 	}
 }
-
 #endif /* TRIE_CPP_ */
