@@ -25,4 +25,12 @@ void add(T in_a, T in_b){
 
 }
 
+void addValueToLastElementNTimes(int value, vector<int> * data_ptr, int times){
+	for (int i = 0; i < times; i++){
+		data_ptr->back() += value;
+	}
+}
 
+void PrintLastElement(const vector<int> * a){
+	std::cout << "vector element = " << a->back() << std::endl;
+}
