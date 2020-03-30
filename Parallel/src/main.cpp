@@ -24,14 +24,23 @@ int main(void){
 	//next create some threads that add N elements to data
 	int num_times = 100;
 
+	Data<int> d1(10);
+	Incrementer<int> * inc1 = new Incrementer<int>(d1.getDataAddress());
+
+	std::thread t0 (&Incrementer<int>::IncrementData, inc1, 10000);
+
 	std::thread t1(addValueToLastElementNTimes, 5, &data, num_times*10);
 	std::thread t2(addValueToLastElementNTimes, 7, &data, num_times*1000);
 	std::thread t3(PrintLastElement, &data);
 
+
+	if (t0.joinable()){
+		cout << "t0 thread id: " << t0.get_id() << endl;
+		t0.join();
+	}
 	if (t1.joinable()){
 		cout << "t1 thread id: " << t1.get_id() << endl;
 		t1.join();
-
 	}
 	if (t2.joinable()){
 		cout << "t2 thread id: " << t2.get_id() << endl;

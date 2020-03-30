@@ -26,3 +26,22 @@ class Data{
 			return &data;
 		}
 };
+
+template <class T>
+class Incrementer{
+private:
+		vector<T> * data;
+
+	public:
+		Incrementer(vector<T> * init){
+			data = init;
+		}
+		~Incrementer(){
+
+		}
+		void IncrementData(int n){
+			for (int i = 0; i < n; i++){
+				(*data).back()++;
+			}
+		}
+};
