@@ -5,21 +5,31 @@
  *      Author: Jpost
  */
 #include <time.h>
+#include <math.h>
 #include "constants.h"
 
 void generateSquareWaveData(int ** buffer, const int channel){
-	clock_t t = clock();
-
 	for (int i = 0; i < BUFFER_LEN; i++){
-		//calculate number of ticks elapsed ("actual time elapsed")
-		t = clock();
-		if (i == 0) {
-			buffer[channel][i] = buffer[channel][BUFFER_LEN - 1];
-		} else {
-			t = clock() - t;
-			DELTA_T = ((float)t)/CLOCKS_PER_SEC;
-			N = (int) (1 / (FREQ * DELTA_T));
-			buffer[channel][i] = ((i % N) < (N/2)) ? 1 : -1;
+		bool updated = false;
+		while(CLOCK == 0){}
+		while(CLOCK == 1){
+			if (!updated){
+				updated = true;
+				buffer[channel][i] = (((int)(i * DELTA_T) % N) < (N/2)) ? 1 : -1;
+			}
+		}
+	}
+}
+
+void generateSineWaveData(int ** buffer, const int channel){
+	for (int i = 0; i < BUFFER_LEN; i++){
+		bool updated = false;
+		while(CLOCK == 0){}
+		while(CLOCK == 1){
+			if (!updated){
+				updated = true;
+				buffer[channel][i] = sin(2 * PI * (float)FREQ * (float)(i * DELTA_T));
+			}
 		}
 	}
 }

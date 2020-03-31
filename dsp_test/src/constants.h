@@ -11,6 +11,8 @@
 #define BUFFER_LEN 32
 #define NUM_CHANNELS 4
 #define FREQ 44100
+#define EPSILON 0.000001
+#define PI 3.14159265
 
 #define CHANNEL_0 0
 #define CHANNEL_1 1
@@ -24,5 +26,7 @@ static int COUNTS = 0;
 static float DELTA_T = 1.0;
 //samples per second
 static int N = 1;
+//define a global clock for each thread
+static int CLOCK = 0;
 
 #endif /* CONSTANTS_H_ */

@@ -26,13 +26,18 @@ int main() {
 
 	// create thread that simply updates COUNTS, and detach
 	clock_t t;
-	auto f = [&t](){
-		t = clock();
-		COUNTS++;
-		t = clock() - t;
-		DELTA_T = ((float)t)/CLOCKS_PER_SEC;
-		std::cout << "It took " << t << " clicks and "<< ((float)t)/CLOCKS_PER_SEC << " seconds.\n" << endl;
-		N = (int) (1 / (FREQ * DELTA_T));
+	static bool completed = false;
+	auto f = [&](){
+		while(!completed){
+			t = clock();
+			while(COUNTS < 500){ COUNTS++; }
+			COUNTS = 0;
+			CLOCK = 1 - CLOCK;
+			t = clock() - t;
+			DELTA_T = (((float)t)/CLOCKS_PER_SEC) + EPSILON;
+			N = (int) (1 / (FREQ * DELTA_T));
+			std::cout << "DELTA_T: " << DELTA_T << endl;
+		}
 	};
 
 	std::thread t1(f);
@@ -44,13 +49,19 @@ int main() {
         buffer[i] = new int[BUFFER_LEN]; // these are our columns
     }
 	initializeDB(buffer);
-	printArray(buffer);
+//	printArray(buffer);
 
 	//make four threads to update each buffer channel
 	std::thread square_wave(generateSquareWaveData, buffer, CHANNEL_0);
+	std::thread sine_wave(generateSineWaveData, buffer, CHANNEL_1);
+//	std::thread triangle_wave(generateSineWaveData, buffer, CHANNEL_1);
+//	std::thread sawtooth_wave(generateSineWaveData, buffer, CHANNEL_1);
 
-	if (t1.joinable()) { t1.join(); }
-	if (square_wave.joinable()) { square_wave.join(); }
+	square_wave.join();
+	sine_wave.join();
+	completed = true;
+	printArray(buffer);
+	t1.join();
 	delete buffer;
     return 0;
 }
