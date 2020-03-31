@@ -11,28 +11,27 @@
 #include <vector>
 #include <cmath>
 #include <thread>
-#define BUFFER_LEN 32
-#define NUM_CHANNELS 4
+#include "constants.h"
+
 using namespace std;
 
-//void initializeDB(int *(*buffer)[NUM_CHANNELS][BUFFER_LEN]){
-//
-//	for (int i = 0; i < NUM_CHANNELS; i++){
-//		for(int j = 0; j < BUFFER_LEN; j++){
-//			(*(buffer + i) + j) = (i*NUM_CHANNELS)+j;
-//		}
-//	}
-//}
+void initializeDB(int ** buffer){
 
-void printArray(int *(*buffer)[NUM_CHANNELS][BUFFER_LEN]){
 	for (int i = 0; i < NUM_CHANNELS; i++){
 		for(int j = 0; j < BUFFER_LEN; j++){
-			cout << *(*(buffer + i) + j) << endl;
+//			buffer[i][j] = (i*BUFFER_LEN)+j; //alternate representation
+			*(*(buffer + i) + j) = -1;
 		}
 	}
 }
 
-
+void printArray(int ** buffer){
+	for (int i = 0; i < NUM_CHANNELS; i++){
+		for(int j = 0; j < BUFFER_LEN; j++){
+			cout << "buffer[" << i << "][" << j << "] = " << *(*(buffer + i) + j) << endl;
+		}
+	}
+}
 
 void fileManipulate(){
     // PATH for files: "C:\\Users\\Jpost\\eclipse-workspace\\dsp_test"
