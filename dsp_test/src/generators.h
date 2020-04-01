@@ -22,13 +22,45 @@ void generateSquareWaveData(float ** buffer, const int channel){
 }
 
 void generateSineWaveData(float ** buffer, const int channel){
+
+	for (int i = 0; i < BUFFER_LEN; i++){
+		bool updated = false;
+		while(CLOCK == 0){}
+		while(CLOCK == 1){
+			int N_prev = N;
+			if (!updated){
+				updated = true;
+				if (N <= EPSILON){
+					buffer[channel][i] = sin((2 * PI * (i % N_prev)) / N_prev);
+				} else {
+					buffer[channel][i] = sin((2 * PI * (i % N)) / N);
+				}
+			}
+		}
+	}
+}
+
+void generateTriangleWaveData(float ** buffer, const int channel){
 	for (int i = 0; i < BUFFER_LEN; i++){
 		bool updated = false;
 		while(CLOCK == 0){}
 		while(CLOCK == 1){
 			if (!updated){
 				updated = true;
-				buffer[channel][i] = sin((2 * PI * (i % N)) / N);
+				buffer[channel][i] = (i % N) < (N/2) ? (float)(i % N)/N : (1 - ((float)(i % N)/N));
+			}
+		}
+	}
+}
+
+void generateSawtoothWaveData(float ** buffer, const int channel){
+	for (int i = 0; i < BUFFER_LEN; i++){
+		bool updated = false;
+		while(CLOCK == 0){}
+		while(CLOCK == 1){
+			if (!updated){
+				updated = true;
+				buffer[channel][i] = (float)(i % N) / N;
 			}
 		}
 	}
