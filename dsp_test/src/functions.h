@@ -15,17 +15,17 @@
 
 using namespace std;
 
-void initializeDB(int ** buffer){
+void initializeDB(float ** buffer){
 
 	for (int i = 0; i < NUM_CHANNELS; i++){
 		for(int j = 0; j < BUFFER_LEN; j++){
 //			buffer[i][j] = (i*BUFFER_LEN)+j; //alternate representation
-			*(*(buffer + i) + j) = -1;
+			*(*(buffer + i) + j) = -1.0;
 		}
 	}
 }
 
-void printArray(int ** buffer){
+void printArray(float ** buffer){
 	for (int i = 0; i < NUM_CHANNELS; i++){
 		for(int j = 0; j < BUFFER_LEN; j++){
 			cout << "buffer[" << i << "][" << j << "] = " << *(*(buffer + i) + j) << endl;

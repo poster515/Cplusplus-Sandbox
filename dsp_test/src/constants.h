@@ -11,7 +11,7 @@
 #define BUFFER_LEN 32
 #define NUM_CHANNELS 4
 #define FREQ 44100
-#define EPSILON 0.000001
+#define EPSILON 0.0000025
 #define PI 3.14159265
 
 #define CHANNEL_0 0
