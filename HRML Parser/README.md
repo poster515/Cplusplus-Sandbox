@@ -10,4 +10,4 @@ And queries to a markup file like this are as follows:
 tag1\~value  
 tag1.tag2\~name
 
-main.cpp outputs the correct attributes for each tag. There is no memory management yet but this trie structure was a proof of concept. 
+main.cpp outputs the correct attributes for each tag.
