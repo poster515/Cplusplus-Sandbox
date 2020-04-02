@@ -6,13 +6,13 @@
  */
 #include <atomic>
 
-#ifndef CONSTANTS_H_
-#define CONSTANTS_H_
+#ifndef GLOBALS_H_
+#define GLOBALS_H_
 
-#define BUFFER_LEN 32
+#define BUFFER_LEN 128
 #define NUM_CHANNELS 4
 #define FREQ 44100
-#define EPSILON 0.0000025
+#define EPSILON 0.0000005
 #define PI 3.14159265
 
 #define CHANNEL_0 0
@@ -28,7 +28,8 @@ static int COUNTS = 0;
 static float DELTA_T = 1.0;
 // N is the period of the sample signals (square, sine, etc)
 std::atomic<int> N(1);
+std::atomic_bool buffer_filled;
 //define a global clock for each thread
 static int CLOCK = 0;
 
-#endif /* CONSTANTS_H_ */
+#endif /* GLOBALS_H_ */

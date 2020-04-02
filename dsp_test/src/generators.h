@@ -6,7 +6,8 @@
  */
 #include <time.h>
 #include <cmath>
-#include "constants.h"
+
+#include "globals.h"
 
 void generateSquareWaveData(float ** buffer, const int channel){
 	for (int i = 0; i < BUFFER_LEN; i++){
@@ -27,14 +28,9 @@ void generateSineWaveData(float ** buffer, const int channel){
 		bool updated = false;
 		while(CLOCK == 0){}
 		while(CLOCK == 1){
-			int N_prev = N;
 			if (!updated){
 				updated = true;
-				if (N <= EPSILON){
-					buffer[channel][i] = sin((2 * PI * (i % N_prev)) / N_prev);
-				} else {
-					buffer[channel][i] = sin((2 * PI * (i % N)) / N);
-				}
+				buffer[channel][i] = sin((2 * PI * (i % N)) / N);
 			}
 		}
 	}
