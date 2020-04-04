@@ -65,6 +65,12 @@ void BufferFill(T **buffer){
 	sine_wave.join();
 	triangle_wave.join();
 	sawtooth_wave.join();
+
+//	generateSquareWaveData(buffer, CHANNEL_0);
+//	generateSineWaveData(buffer, CHANNEL_1);
+//	generateTriangleWaveData(buffer, CHANNEL_2);
+//	generateSawtoothWaveData(buffer, CHANNEL_3);
+
 }
 
 void RunCounter(){

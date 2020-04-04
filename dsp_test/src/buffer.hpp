@@ -10,6 +10,7 @@
 
 #include <thread>
 #include <chrono>
+#include <mutex>
 #include "globals.h"
 #include "functions.h"
 
@@ -21,17 +22,18 @@ class BufferHandler {
 
 	public:
 		BufferHandler(){
-			std::cout << "Constructor called." << std::endl;
-			buffer = initializeDB<T>(buffer);
+			std::cout << "BH constructor called." << std::endl;
+			this->buffer = initializeDB<T>(buffer);
 		}
 		~BufferHandler(){
-			std::cout << "Destructor called." << std::endl;
+			std::cout << "BH destructor called." << std::endl;
 			for (int i = 0; i < NUM_CHANNELS; ++i){
 				delete[] buffer[i];
 			}
 			delete[] buffer;
 		}
 
+//		void Run(mutex &buffer_mutex){
 		void Run(){
 
 			//allow pseudo clock to run, and then run it
@@ -40,8 +42,10 @@ class BufferHandler {
 			//run the counter until buffer is filled
 			RunCounter();
 
-			//fill the buffer with four channel's worth of data
+			//lock buffer mutex while the buffer is filled
+//			buffer_mutex.lock();
 			BufferFill<T>(buffer);
+//			buffer_mutex.unlock();
 
 			//tell the pseudo clock it can stop counting
 			buffer_filled = true;
@@ -56,6 +60,9 @@ class BufferHandler {
 			//write all this data to a file, that a python notebook can read and plot
 			writeToFile<T>(buffer);
 
+		}
+		T ** getBufferAddress(){
+			return buffer;
 		}
 
 };
