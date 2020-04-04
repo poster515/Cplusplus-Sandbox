@@ -23,7 +23,7 @@ class BufferHandler {
 	public:
 		BufferHandler(){
 			std::cout << "BH constructor called." << std::endl;
-			this->buffer = initializeDB<T>(buffer);
+			this->buffer = initializeDB<T>(buffer, -1.0);
 		}
 		~BufferHandler(){
 			std::cout << "BH destructor called." << std::endl;
@@ -58,7 +58,8 @@ class BufferHandler {
 			printArray<T>(buffer);
 
 			//write all this data to a file, that a python notebook can read and plot
-			writeToFile<T>(buffer);
+			std::string filename = "audio_samples.txt";
+			writeToFile<T>(buffer, filename);
 
 		}
 		T ** getBufferAddress(){
