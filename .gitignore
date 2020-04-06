@@ -1,3 +1,5 @@
 /.metadata/
 # ignore all project files
 *.[project]
+*.[xml]
+*.[o]
