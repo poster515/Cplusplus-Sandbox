@@ -23,20 +23,18 @@ int main() {
 	// grab start time in ticks
 	clock_t t = clock();
 
-	//create mutex to control access to buffer
-	mutex buffer_mutex;
-
 	//create classes to handle buffer filling and signal processing
 	BufferHandler<float> BH;
 	SignalProcessor<float> SP;
 
 //------------RUN PSEUDO CLOCK AND FILL BUFFER-----------//
 	std::thread data_thread(&BufferHandler<float>::Run, &BH);
-	data_thread.join();
+//	data_thread.join();
 //------------END RUN PSEUDO CLOCK AND FILL BUFFER-------//
 
 //------------RUN SIGNAL PROCESSING ON EACH BUFFER-------//
 	std::thread process_thread(&SignalProcessor<float>::FFT, &SP, BH.getBufferAddress());
+	data_thread.join();
 	process_thread.join();
 //------------END RUN SIGNAL PROCESSING ON EACH BUFFER---//
 

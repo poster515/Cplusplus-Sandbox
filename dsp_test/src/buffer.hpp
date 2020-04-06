@@ -11,8 +11,10 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+
+#include "BH_functions.h"
+#include "common_functions.h"
 #include "globals.h"
-#include "functions.h"
 
 using namespace std;
 template <class T>

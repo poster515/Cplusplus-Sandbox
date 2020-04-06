@@ -19,42 +19,10 @@
 using namespace std;
 
 template <typename T>
-T ** initializeDB(T ** buffer, const T init){
-	buffer = new T*[NUM_CHANNELS];
-	for (int i = 0; i < NUM_CHANNELS; i++){
-		*(buffer + i) = new T[BUFFER_LEN];
-//		buffer[i] = new T[BUFFER_LEN];		//alternate representation
-		for(int j = 0; j < BUFFER_LEN; j++){
-//			buffer[i][j] = (i*BUFFER_LEN)+j; //alternate representation
-			*(*(buffer + i) + j) = init;
-		}
-	}
-	return buffer;
-}
-
-template <typename T>
-void printArray(T ** buffer){
-	for (int i = 0; i < NUM_CHANNELS; i++){
-		for(int j = 0; j < BUFFER_LEN; j++){
-			cout << "buffer[" << i << "][" << j << "] = " << *(*(buffer + i) + j) << endl;
-		}
-	}
-}
-template <typename T>
-void writeToFile(T **buffer, string &filename){
-	// PATH for files: "C:\\Users\\Jpost\\eclipse-workspace\\dsp_test"
-	ofstream new_file;
-    new_file.open(filename, ios::binary);
-    new_file << "Square Wave, Sine Wave, Triangle Wave, Sawtooth Wave\n";
-    for(int i = 0; i < BUFFER_LEN; i++){
-    	new_file << buffer[0][i] << ", " << buffer[1][i] << ", " << buffer[2][i] << ", " << buffer[3][i] << "\n";
-    }
-    new_file.close();
-}
-
-template <typename T>
 void BufferFill(T **buffer){
 	//make four threads to update each buffer channel
+	mutex mu;
+	mu.lock();
 	std::thread triangle_wave(generateTriangleWaveData, buffer, CHANNEL_2);
 	std::thread square_wave(generateSquareWaveData, buffer, CHANNEL_0);
 	std::thread sine_wave(generateSineWaveData, buffer, CHANNEL_1);
@@ -65,6 +33,7 @@ void BufferFill(T **buffer){
 	sine_wave.join();
 	triangle_wave.join();
 	sawtooth_wave.join();
+	mu.unlock();
 
 //	generateSquareWaveData(buffer, CHANNEL_0);
 //	generateSineWaveData(buffer, CHANNEL_1);
