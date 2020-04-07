@@ -4,15 +4,9 @@
  *  Created on: Mar 30, 2020
  *      Author: Jpost
  */
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstddef>
-#include <vector>
-#include <cmath>
+
 #include <thread>
-#include <mutex>
-#include <chrono>
+//#include <mutex>
 #include "generators.h"
 #include "globals.h"
 
@@ -21,19 +15,19 @@ using namespace std;
 template <typename T>
 void BufferFill(T **buffer){
 	//make four threads to update each buffer channel
-	mutex mu;
-	mu.lock();
-	std::thread triangle_wave(generateTriangleWaveData, buffer, CHANNEL_2);
-	std::thread square_wave(generateSquareWaveData, buffer, CHANNEL_0);
-	std::thread sine_wave(generateSineWaveData, buffer, CHANNEL_1);
-	std::thread sawtooth_wave(generateSawtoothWaveData, buffer, CHANNEL_3);
+//	mutex mu;
+//	mu.lock();
+	std::thread triangle_wave(generateTriangleWaveData<T>, buffer, CHANNEL_2);
+	std::thread square_wave(generateSquareWaveData<T>, buffer, CHANNEL_0);
+	std::thread sine_wave(generateSineWaveData<T>, buffer, CHANNEL_1);
+	std::thread sawtooth_wave(generateSawtoothWaveData<T>, buffer, CHANNEL_3);
 
 	//wait for each thread to complete
 	square_wave.join();
 	sine_wave.join();
 	triangle_wave.join();
 	sawtooth_wave.join();
-	mu.unlock();
+//	mu.unlock();
 
 //	generateSquareWaveData(buffer, CHANNEL_0);
 //	generateSineWaveData(buffer, CHANNEL_1);

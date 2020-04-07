@@ -13,8 +13,11 @@
 #include <mutex>
 #include "SP_functions.h"	// performFFT
 #include "common_functions.h"	// printArray, initializeDB
+//#include "filters.h"
 
-template <typename T>
+using namespace std;
+
+template <class T>
 class SignalProcessor{
 	private:
 		T ** real_buffer; //NUM_CHANNELS deep with BUFFER_LEN data points
@@ -46,10 +49,10 @@ class SignalProcessor{
 			// TODO: refactor to use <complex> library to simplify this whole class
 			mutex mu;
 			mu.lock();
-			std::thread t1 (performFFT<float>, data_buffer, real_buffer, imag_buffer, CHANNEL_0);
-			std::thread t2 (performFFT<float>, data_buffer, real_buffer, imag_buffer, CHANNEL_1);
-			std::thread t3 (performFFT<float>, data_buffer, real_buffer, imag_buffer, CHANNEL_2);
-			std::thread t4 (performFFT<float>, data_buffer, real_buffer, imag_buffer, CHANNEL_3);
+			std::thread t1 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_0);
+			std::thread t2 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_1);
+			std::thread t3 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_2);
+			std::thread t4 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_3);
 
 			t1.join();
 			t2.join();
@@ -72,6 +75,21 @@ class SignalProcessor{
 			//write all this data to a file, that a python notebook can read and plot
 			filename = "DFT_imag.txt";
 			writeToFile<T>(imag_buffer, filename);
+		}
+
+		void filter(T**(*filter_func)(T**), T ** data_buffer){
+			real_buffer = filter_func(real_buffer);
+			imag_buffer = filter_func(imag_buffer);
+
+			std::thread t1 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_0);
+			std::thread t2 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_1);
+			std::thread t3 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_2);
+			std::thread t4 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_3);
+
+			t1.join();
+			t2.join();
+			t3.join();
+			t4.join();
 		}
 };
 

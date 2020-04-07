@@ -8,8 +8,6 @@
 #ifndef BUFFER_HPP_
 #define BUFFER_HPP_
 
-#include <thread>
-#include <chrono>
 #include <mutex>
 
 #include "BH_functions.h"
@@ -52,11 +50,8 @@ class BufferHandler {
 			//tell the pseudo clock it can stop counting
 			buffer_filled = true;
 
-			// just wait until t1 is safely destroyed
-			std::this_thread::sleep_for(std::chrono::nanoseconds(100));
-
+			// print some stuff
 			std::cout << "threads are joined" << std::endl;
-
 			printArray<T>(buffer);
 
 			//write all this data to a file, that a python notebook can read and plot
