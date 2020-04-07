@@ -24,29 +24,24 @@ int main() {
 	// grab start time in ticks
 	clock_t t = clock();
 
-	// TODO: make some sort of lock for data buffer in BH.
-//	std::mutex data_buffer_mutex;
-//	std::shared_ptr<std::mutex> DB_mutex_ptr = &data_buffer_mutex;
+	//declare a single mutex shared between the handler classes
+	std::mutex data_buffer_mutex;
+	std::shared_ptr<std::mutex> DB_mutex_ptr(&data_buffer_mutex);
 
 	//create classes to handle buffer filling and signal processing
-	BufferHandler<double> BH;
-	SignalProcessor<double> SP;
-//	FilterHandler<double> FH;
+	BufferHandler<double> BH(DB_mutex_ptr);
+	SignalProcessor<double> SP(DB_mutex_ptr);
+	FilterHandler<double> FH;
+//	InverseHandler<double> IH(DB_mutex_ptr);
 
-	//TODO: create single thread that calls these two functions
-//------------RUN PSEUDO CLOCK AND FILL BUFFER-----------//
+	//run simultaneous threads to fill data buffer and immediately process
 	std::thread data_thread(&BufferHandler<double>::Run, &BH);
-	data_thread.join();
-//------------END RUN PSEUDO CLOCK AND FILL BUFFER-------//
-
-//------------RUN SIGNAL PROCESSING ON EACH BUFFER-------//
 	std::thread process_thread(&SignalProcessor<double>::FFT, &SP, BH.getBufferAddress());
+//	std::thread filter_thread();
+	data_thread.join();
 	process_thread.join();
-//------------END RUN SIGNAL PROCESSING ON EACH BUFFER---//
+//	filter_thread.join();
 
-//------------RUN FILTER TO FILTER EACH DFT--------------//
-//	std::thread filter();
-//------------END RUN FILTER TO FILTER EACH DFT----------//
 
 	//grab end time to determine total processing time
 	t = clock() - t;

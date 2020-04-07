@@ -19,11 +19,13 @@ template <class T>
 class BufferHandler {
 	private:
 		T ** buffer;
+		std::shared_ptr<std::mutex> DB_mutex_ptr;
 
 	public:
-		BufferHandler(){
+		BufferHandler(std::shared_ptr<std::mutex> mutex_ptr){
 			std::cout << "BH constructor called." << std::endl;
 			this->buffer = initializeDB<T>(buffer, -1.0);
+			DB_mutex_ptr = mutex_ptr;
 		}
 		~BufferHandler(){
 			std::cout << "BH destructor called." << std::endl;
@@ -43,9 +45,9 @@ class BufferHandler {
 			RunCounter();
 
 			//lock buffer mutex while the buffer is filled
-//			buffer_mutex.lock();
+			while(!(*DB_mutex_ptr).try_lock()){}
 			BufferFill<T>(buffer);
-//			buffer_mutex.unlock();
+			(*DB_mutex_ptr).unlock();
 
 			//tell the pseudo clock it can stop counting
 			buffer_filled = true;

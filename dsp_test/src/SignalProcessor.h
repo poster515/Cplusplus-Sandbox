@@ -9,11 +9,9 @@
 #define SIGNALPROCESSOR_H_
 
 #include <cmath>
-//#include <complex>
 #include <mutex>
 #include "SP_functions.h"	// performFFT
 #include "common_functions.h"	// printArray, initializeDB
-//#include "filters.h"
 
 using namespace std;
 
@@ -22,14 +20,14 @@ class SignalProcessor{
 	private:
 		T ** real_buffer; //NUM_CHANNELS deep with BUFFER_LEN data points
 		T ** imag_buffer;
-//		std::complex<T> ** buffer;
+		std::shared_ptr<std::mutex> DB_mutex_ptr;
 
 	public:
-		SignalProcessor(){
+		SignalProcessor(std::shared_ptr<std::mutex> mutex_ptr){
 			std::cout << "SP constructor called." << std::endl;
 			this->real_buffer = initializeDB<T>(real_buffer, 0);
 			this->imag_buffer = initializeDB<T>(imag_buffer, 0);
-//			this->buffer = initializeDB<T>(buffer, 0);
+			DB_mutex_ptr = mutex_ptr;
 		}
 		~SignalProcessor(){
 			std::cout << "SP destructor called." << std::endl;
@@ -42,13 +40,9 @@ class SignalProcessor{
 		}
 		void FFT(T ** data_buffer){
 			//perform FFT on every channel in buffer
-//			std::cout << "In FFT function...just printing." << std::endl;
-//			printArray<T>(data_buffer);
-//			printArray<T>(real_buffer);
-//			printArray<T>(imag_buffer);
 			// TODO: refactor to use <complex> library to simplify this whole class
-			mutex mu;
-			mu.lock();
+
+			while(!(*DB_mutex_ptr).try_lock()){}
 			std::thread t1 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_0);
 			std::thread t2 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_1);
 			std::thread t3 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_2);
@@ -58,8 +52,7 @@ class SignalProcessor{
 			t2.join();
 			t3.join();
 			t4.join();
-			mu.unlock();
-
+			(*DB_mutex_ptr).unlock();
 //			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_0);
 //			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_1);
 //			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_2);
@@ -76,23 +69,6 @@ class SignalProcessor{
 			filename = "DFT_imag.txt";
 			writeToFile<T>(imag_buffer, filename);
 		}
-
-		void filter(T**(*filter_func)(T**), T ** data_buffer){
-			real_buffer = filter_func(real_buffer);
-			imag_buffer = filter_func(imag_buffer);
-
-			std::thread t1 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_0);
-			std::thread t2 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_1);
-			std::thread t3 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_2);
-			std::thread t4 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_3);
-
-			t1.join();
-			t2.join();
-			t3.join();
-			t4.join();
-		}
 };
-
-
 
 #endif /* SIGNALPROCESSOR_H_ */
