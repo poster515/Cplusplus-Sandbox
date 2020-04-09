@@ -10,6 +10,7 @@
 
 #include <thread>
 #include <complex>
+#include "common_functions.h"
 #include "globals.h"
 #include "SignalProcessor.h"
 
@@ -17,7 +18,7 @@ using namespace std;
 
 //TODO: optimize this algorithm
 template <typename T>
-void SignalProcessor<T>::performFFT(T ** data_buffer, T ** real_buffer, T ** imag_buffer, const int channel){
+void SignalProcessor<T>::performFFT(T ** data_buffer, const int channel){
 	for (int i = 0; i < BUFFER_LEN; ++i){
 		for(int j = 0; j < BUFFER_LEN; ++j){
 			// i is for each f_i element
@@ -36,22 +37,19 @@ void SignalProcessor<T>::FFT(T ** data_buffer){
 	//perform FFT on every channel in buffer
 	// TODO: refactor to use <complex> library to simplify this whole class
 
-	while(!(*this->real_mutex_ptr).try_lock()){}
-	std::thread t1 (SignalProcessor<T>::performFFT, data_buffer, this->real_buffer, this->imag_buffer, CHANNEL_0);
-	std::thread t2 (SignalProcessor<T>::performFFT, data_buffer, this->real_buffer, this->imag_buffer, CHANNEL_1);
-	std::thread t3 (SignalProcessor<T>::performFFT, data_buffer, this->real_buffer, this->imag_buffer, CHANNEL_2);
-	std::thread t4 (SignalProcessor<T>::performFFT, data_buffer, this->real_buffer, this->imag_buffer, CHANNEL_3);
+	std::lock_guard<std::mutex> lk(*this->real_mutex_ptr);
+	//now we own the lock on this data
+	std::thread t1 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_0);
+	std::thread t2 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_1);
+	std::thread t3 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_2);
+	std::thread t4 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_3);
 
 	t1.join();
 	t2.join();
 	t3.join();
 	t4.join();
-	(*this->real_mutex_ptr).unlock();
-//			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_0);
-//			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_1);
-//			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_2);
-//			performFFT<float>(data_buffer, real_buffer, imag_buffer, CHANNEL_3);
 
+	std::cout << "DFT threads are joined. Printing arrays." << std::endl;
 	printArray<T>(this->real_buffer);
 	printArray<T>(this->imag_buffer);
 
@@ -63,18 +61,5 @@ void SignalProcessor<T>::FFT(T ** data_buffer){
 	filename = "DFT_imag.txt";
 	writeToFile<T>(this->imag_buffer, filename);
 }
-
-//
-//template <typename T>
-//std::complex<T> **  initializeSP(std::complex<T> ** buffer, const T init){
-//	buffer = new std::complex<T>*[NUM_CHANNELS];
-//	for (int i = 0; i < NUM_CHANNELS; i++){
-//		*(buffer + i) = new std::complex<T>[BUFFER_LEN];
-//		for(int j = 0; j < BUFFER_LEN; j++){
-//			*(*(buffer + i) + j) = (init, init);
-//		}
-//	}
-//	return buffer;
-//}
 
 #endif /* SIGNALPROCESSOR_HPP_ */

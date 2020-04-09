@@ -5,34 +5,34 @@
  *      Author: Jpost
  */
 
-#ifndef FILTERS_H_
-#define FILTERS_H_
+#ifndef FILTERHANDLER_H_
+#define FILTERHANDLER_H_
 
 #include "BasicBuffer.h"
+#include <vector>
+using namespace std;
 
 template <class T>
-class FilterHandler : BasicBuffer<T> {
+class FilterHandler : public BasicBuffer<T> {
+	protected:
+		void lowPassFilter(T**, T**, const int);
+		vector<T> LPF;
 
 	public:
-		void filterDFT(SignalProcessor<double> &SP){
+		FilterHandler(std::shared_ptr<std::mutex> mutex_ptr, T value) :
+			BasicBuffer<T>(mutex_ptr, value){
 
-			T**(*filter_func)(T**);
-
-			this->real_buffer = filter_func(this->real_buffer);
-			this->imag_buffer = filter_func(this->imag_buffer);
-
-//			std::thread t1 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_0);
-//			std::thread t2 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_1);
-//			std::thread t3 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_2);
-//			std::thread t4 (performFFT<T>, data_buffer, real_buffer, imag_buffer, CHANNEL_3);
-//
-//			t1.join();
-//			t2.join();
-//			t3.join();
-//			t4.join();
+			//now initialize low pass filter vector
+			for (int i = 0; i < BUFFER_LEN; ++i){
+				// preferentially weight the lowest quarter of frequencies
+				this->LPF.insert(this->LPF.end(), (i < (BUFFER_LEN / 4)) ? 1 : 0.33);
+			}
 		}
+		~FilterHandler(){
+			std::cout << "FH destructor called." << std::endl;
+		}
+		void filterDFT(T ** real_buffer, T ** imag_buffer);
+
 };
 
-
-
-#endif /* FILTERS_H_ */
+#endif /* FILTERHANDLER_H_ */

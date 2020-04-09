@@ -10,6 +10,9 @@
 
 #include <memory>
 #include <mutex>
+#include <condition_variable>
+
+#include "common_functions.h"
 
 template <typename T>
 class BasicBuffer{
@@ -17,7 +20,7 @@ class BasicBuffer{
         T ** real_buffer;
         T ** imag_buffer;
         std::shared_ptr<std::mutex> real_mutex_ptr;
-        std::shared_ptr<std::mutex> imag_mutex_ptr;
+        std::condition_variable cv;
 
     public:
         BasicBuffer(std::shared_ptr<std::mutex> mutex_ptr, T value){
@@ -26,6 +29,7 @@ class BasicBuffer{
 			this->real_buffer = initializeDB<T>(this->real_buffer, value);
 			this->imag_buffer = initializeDB<T>(this->imag_buffer, value);
 			this->real_mutex_ptr = mutex_ptr;
+//			printArray<T>(real_buffer);
 		}
         ~BasicBuffer(){
         	std::cout << "BB destructor called." << std::endl;
@@ -36,6 +40,12 @@ class BasicBuffer{
 			delete[] this->real_buffer;
 			delete[] this->imag_buffer;
         }
+        T ** getRealBufferAddress(){
+        	return real_buffer;
+        }
+        T ** getImagBufferAddress(){
+			return imag_buffer;
+		}
 };
 
 

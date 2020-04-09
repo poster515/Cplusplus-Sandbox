@@ -16,10 +16,16 @@ using namespace std;
 
 template <typename T>
 class AudioBuffer : public BasicBuffer<T> {
+	private:
+		bool buffer_filled;
+		bool isCounterStarted;
 
 	public:
 		AudioBuffer(std::shared_ptr<std::mutex> mutex_ptr, T value) :
-			BasicBuffer<T>(mutex_ptr, value){}
+			BasicBuffer<T>(mutex_ptr, value){
+			buffer_filled = false;
+			isCounterStarted = false;
+		}
 
 		~AudioBuffer(){
 			std::cout << "AB destructor called." << std::endl;
@@ -29,9 +35,7 @@ class AudioBuffer : public BasicBuffer<T> {
 		void RunCounter();
 		void BufferFill();
 		void Run();
-		T ** getBufferAddress(){
-			return this->real_buffer;
-		}
+		T ** getBufferAddress();
 };
 
 #endif /* AUDIOBUFFER_H_ */
