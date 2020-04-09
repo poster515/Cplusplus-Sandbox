@@ -7,20 +7,17 @@
 //============================================================================
 
 #include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <cstddef>
-#include <vector>
 #include <time.h>
 #include <mutex>
-
-#include "buffer.hpp"
-#include "SignalProcessor.h"
-#include "filters.h"
+#include <thread>
+#include "AudioBuffer.hpp"
+#include "SignalProcessor.hpp"
+#include "FilterHandler.h"
 
 using namespace std;
 
 int main() {
+
 	// grab start time in ticks
 	clock_t t = clock();
 
@@ -29,19 +26,19 @@ int main() {
 	std::shared_ptr<std::mutex> DB_mutex_ptr(&data_buffer_mutex);
 
 	//create classes to handle buffer filling and signal processing
-	BufferHandler<double> BH(DB_mutex_ptr);
-	SignalProcessor<double> SP(DB_mutex_ptr);
-	FilterHandler<double> FH;
+	AudioBuffer<double> AB(DB_mutex_ptr, -1.0);
+	SignalProcessor<double> SP(DB_mutex_ptr, 0.0);
+//	FilterHandler<double> FH;
 //	InverseHandler<double> IH(DB_mutex_ptr);
 
 	//run simultaneous threads to fill data buffer and immediately process
-	std::thread data_thread(&BufferHandler<double>::Run, &BH);
-	std::thread process_thread(&SignalProcessor<double>::FFT, &SP, BH.getBufferAddress());
-//	std::thread filter_thread();
-	data_thread.join();
-	process_thread.join();
-//	filter_thread.join();
+	std::thread data_thread(&AudioBuffer<double>::Run, &AB);
+	std::thread DSP_thread(&SignalProcessor<double>::FFT, &SP, AB.getBufferAddress());
+//	std::thread filter_thread(&FilterHandler<double>::filterDFT, &FH, &SP);
 
+	data_thread.join();
+	DSP_thread.join();
+//	filter_thread.join();
 
 	//grab end time to determine total processing time
 	t = clock() - t;
