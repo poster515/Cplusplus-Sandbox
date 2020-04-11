@@ -19,8 +19,9 @@ using namespace std;
 template <class T>
 class SignalProcessor : public BasicBuffer<T> {
 	public:
-		SignalProcessor(std::shared_ptr<std::mutex> mutex_ptr, T value) :
-			BasicBuffer<T>(mutex_ptr, value){}
+		SignalProcessor(std::shared_ptr<std::mutex> their_mutex_ptr, std::shared_ptr<std::atomic<bool>> their_cond_ptr,
+				std::shared_ptr<std::mutex> print_mutex_ptr, T value) :
+			BasicBuffer<T>(their_mutex_ptr, their_cond_ptr, print_mutex_ptr, value){}
 
 		~SignalProcessor(){
 			std::cout << "SP destructor called." << std::endl;

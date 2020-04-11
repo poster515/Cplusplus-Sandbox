@@ -23,9 +23,9 @@ void SignalProcessor<T>::performFFT(T ** data_buffer, const int channel){
 		for(int j = 0; j < BUFFER_LEN; ++j){
 			// i is for each f_i element
 			// j is for going through each array element and weighting
-			float trig_arg = (2.0 * PI * i * j)/BUFFER_LEN;
-			float real_product = data_buffer[channel][j] * cos(trig_arg);
-			float imag_product = data_buffer[channel][j] * sin(trig_arg);
+			T trig_arg = (2.0 * PI * i * j)/BUFFER_LEN;
+			T real_product = data_buffer[channel][j] * cos(trig_arg);
+			T imag_product = data_buffer[channel][j] * sin(trig_arg);
 			this->real_buffer[channel][i] += real_product;
 			this->imag_buffer[channel][i] -= imag_product;
 		}
@@ -34,11 +34,13 @@ void SignalProcessor<T>::performFFT(T ** data_buffer, const int channel){
 
 template <typename T>
 void SignalProcessor<T>::FFT(T ** data_buffer){
-	//perform FFT on every channel in buffer
-	// TODO: refactor to use <complex> library to simplify this whole class
 
-	std::lock_guard<std::mutex> lk(*this->real_mutex_ptr);
-	//now we own the lock on this data
+	(this->my_wait_cond) = false; //just in case
+	while(!(*this->my_mutex_ptr).try_lock()){}
+	while(!(*this->their_cond_ptr)){}
+	while(!(*this->their_mutex_ptr).try_lock()){}
+
+	//now SP owns locks on it's buffers and AB's buffers
 	std::thread t1 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_0);
 	std::thread t2 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_1);
 	std::thread t3 (&SignalProcessor<T>::performFFT, this, data_buffer, CHANNEL_2);
@@ -49,9 +51,18 @@ void SignalProcessor<T>::FFT(T ** data_buffer){
 	t3.join();
 	t4.join();
 
-	std::cout << "DFT threads are joined. Printing arrays." << std::endl;
+	//after threads are joined, release mutexes
+	(*this->their_mutex_ptr).unlock();
+	(*this->my_mutex_ptr).unlock();
+
+	//let next stage know it can run
+	(*this->my_cond_ptr) = true;
+
+	//print some stuff
+	while(!(*this->print_mutex_ptr).try_lock()){}
+	std::cout << "DFT threads are joined. SP owns print_mutex." << std::endl;
 	printArray<T>(this->real_buffer);
-	printArray<T>(this->imag_buffer);
+//	printArray<T>(this->imag_buffer);
 
 	//write all this data to a file, that a python notebook can read and plot
 	std::string filename = "DFT_real.txt";
@@ -60,6 +71,8 @@ void SignalProcessor<T>::FFT(T ** data_buffer){
 	//write all this data to a file, that a python notebook can read and plot
 	filename = "DFT_imag.txt";
 	writeToFile<T>(this->imag_buffer, filename);
+	(*this->print_mutex_ptr).unlock();
+	std::cout << "SP released print_mutex" <<std::endl;
 }
 
 #endif /* SIGNALPROCESSOR_HPP_ */

@@ -19,8 +19,9 @@ class FilterHandler : public BasicBuffer<T> {
 		vector<T> LPF;
 
 	public:
-		FilterHandler(std::shared_ptr<std::mutex> mutex_ptr, T value) :
-			BasicBuffer<T>(mutex_ptr, value){
+		FilterHandler(std::shared_ptr<std::mutex> their_mutex_ptr, std::shared_ptr<std::atomic<bool>> their_cond_ptr,
+				std::shared_ptr<std::mutex> print_mutex_ptr, T value) :
+			BasicBuffer<T>(their_mutex_ptr, their_cond_ptr, print_mutex_ptr, value){
 
 			//now initialize low pass filter vector
 			for (int i = 0; i < BUFFER_LEN; ++i){

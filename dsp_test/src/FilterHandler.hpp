@@ -22,7 +22,14 @@ void FilterHandler<T>::lowPassFilter(T ** real_buffer, T ** imag_buffer, const i
 
 template <typename T>
 void FilterHandler<T>::filterDFT(T ** real_buffer, T ** imag_buffer){
-	std::lock_guard<std::mutex> lk(*this->real_mutex_ptr);
+
+	(*this->my_cond_ptr) = false; //just in case
+
+	//wait for SP to complete it's processing
+	while(!(*this->my_mutex_ptr).try_lock()){}
+	while(!(*this->their_cond_ptr)){}
+	while(!(*this->their_mutex_ptr).try_lock()){}
+
 	std::thread t1 (FilterHandler<T>::lowPassFilter, this, real_buffer, imag_buffer, CHANNEL_0);
 	std::thread t2 (FilterHandler<T>::lowPassFilter, this, real_buffer, imag_buffer, CHANNEL_1);
 	std::thread t3 (FilterHandler<T>::lowPassFilter, this, real_buffer, imag_buffer, CHANNEL_2);
@@ -32,7 +39,16 @@ void FilterHandler<T>::filterDFT(T ** real_buffer, T ** imag_buffer){
 	t3.join();
 	t4.join();
 
-	std::cout << "Filter threads are joined." << std::endl;
+	//after threads are joined, release mutexes
+	(*this->their_mutex_ptr).unlock();
+	(*this->my_mutex_ptr).unlock();
+
+	//let next stage know it can run
+	(*this->my_cond_ptr) = true;
+
+	//print some stuff
+	while(!(*this->print_mutex_ptr).try_lock()){}
+	std::cout << "Filter threads are joined. FH owns print_mutex." << std::endl;
 
 	//write all this data to a file, that a python notebook can read and plot
 	std::string filename = "DFT_real_filtered.txt";
@@ -41,6 +57,8 @@ void FilterHandler<T>::filterDFT(T ** real_buffer, T ** imag_buffer){
 	//write all this data to a file, that a python notebook can read and plot
 	filename = "DFT_imag_filtered.txt";
 	writeToFile<T>(this->imag_buffer, filename);
+	(*this->print_mutex_ptr).unlock();
+	std::cout << "FH released print_mutex" <<std::endl;
 };
 
 

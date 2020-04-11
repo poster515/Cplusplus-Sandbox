@@ -17,14 +17,12 @@ using namespace std;
 template <typename T>
 class AudioBuffer : public BasicBuffer<T> {
 	private:
-		bool buffer_filled;
-		bool isCounterStarted;
+		std::atomic<bool> isCounterStarted;
 
 	public:
-		AudioBuffer(std::shared_ptr<std::mutex> mutex_ptr, T value) :
-			BasicBuffer<T>(mutex_ptr, value){
-			buffer_filled = false;
-			isCounterStarted = false;
+		AudioBuffer(std::shared_ptr<std::mutex> their_mutex_ptr, std::shared_ptr<std::atomic<bool>> their_cond_ptr,
+				std::shared_ptr<std::mutex> print_mutex_ptr, T value) :
+			BasicBuffer<T>(their_mutex_ptr, their_cond_ptr, print_mutex_ptr, value){
 		}
 
 		~AudioBuffer(){

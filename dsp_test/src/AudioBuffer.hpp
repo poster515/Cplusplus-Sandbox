@@ -22,7 +22,7 @@ template <typename T>
 void AudioBuffer<T>::RunCounter(){
 	// create thread that simply updates COUNTS, and detach
 	clock_t t;
-	isCounterStarted = false;
+	(*this->their_cond_ptr) = false;
 	auto f = [&](){
 			CLOCK = 0;
 			while(!buffer_filled){
@@ -35,14 +35,11 @@ void AudioBuffer<T>::RunCounter(){
 				if ((int) (1 / (FREQ * DELTA_T)) > EPSILON){
 					N = (int) (1 / (FREQ * DELTA_T));
 				}
-//				std::cout << "DELTA_T: " << DELTA_T << ", N: " << N << endl;
 			}
 		};
-
 	std::thread t1(f);
-	isCounterStarted = true;
+	(*this->their_cond_ptr) = true; //let Run() know it can run
 	t1.detach(); //don't need to sync with anything, or use join()
-
 }
 
 
@@ -63,26 +60,29 @@ void AudioBuffer<T>::BufferFill(){
 
 template <typename T>
 void AudioBuffer<T>::Run(){
-
 	//allow pseudo clock to run, and then run it
-	buffer_filled = false;
+	(this->my_wait_cond) = false; //just in case
 
-	//lock buffer and fill
-	std::unique_lock<std::mutex> ulock(*this->real_mutex_ptr);
-	this->cv.wait(ulock, [&]{ return (bool)this->isCounterStarted; });
+	//wait for counter to start and lock my_mutex
+	std::unique_lock<std::mutex> ulock(*this->my_mutex_ptr);
+	this->cv.wait(ulock, [&]{ return (bool)(*this->their_cond_ptr); });
+	std::cout << "AB now owns mutexes" <<std::endl;
 	AudioBuffer<T>::BufferFill();
 	ulock.unlock();
 
 	//tell the pseudo clock it can stop counting
-	buffer_filled = true;
+	(this->my_wait_cond) = true;
 
 	// print some stuff
-	std::cout << "threads are joined" << std::endl;
+	while(!(*this->print_mutex_ptr).try_lock()){}
+	std::cout << "threads are joined. AB own print_mutex." << std::endl;
 	printArray<T>(this->real_buffer);
 
 	//write all this data to a file, that a python notebook can read and plot
 	std::string filename = "audio_samples.txt";
 	writeToFile<T>(this->real_buffer, filename);
+	(*this->print_mutex_ptr).unlock();
+	std::cout << "AB released print_mutex" <<std::endl;
 
 }
 
