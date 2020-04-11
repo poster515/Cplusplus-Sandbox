@@ -7,9 +7,6 @@ And computes the following real portion of the DFT:
 And filters it:
 ![Real DFT_filtered](/dsp_test/DFT_real_filtered.png)
 
-As well as the imaginary part of the DFT:
-![Imaginary DFT](/dsp_test/DFT_imag.png)
-
-And filters it:
-![Imag DFT_filtered](/dsp_test/DFT_imag_filtered.png)
+And then computes the inverse DFT:
+![Inverse DFT](/dsp_test/IDFT_real.png)
 
