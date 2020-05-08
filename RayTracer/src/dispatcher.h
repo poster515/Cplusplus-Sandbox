@@ -10,33 +10,37 @@
 
 #include <mutex>
 #include <thread>
+#include <queue>
+#include <memory>
+
+#include "worker.h"
 
 //forward declare this structure
 struct RGBTRIPLE;
 
-class Worker {
-	public:
-		//need to constantly be scanning Dispatcher's "requests" queue and grab one if available
-};
-
-class Request {
-	//should be generic.
-	//give an x and y coordinate, and memory location of "pixels"
-};
+//need to forward declare Request for Worker class
+class Request;
 
 class Dispatcher {
 	private:
-		std::queue<int> worker_threads;
-		std::queue<int> requests;
+		std::queue<Worker *> workers;
+		std::queue<Request *> requests;
 
 		std::mutex worker_mutex;
+		std::shared_ptr<std::mutex> worker_mtx_ptr;
 		std::mutex request_mutex;
+		std::shared_ptr<std::mutex> request_mtx_ptr;
 
 	public:
 		Dispatcher(int num_threads){
-			for(int i = 0; i < num_threads; ++i){
-				//create a num_threads number of worker_threads, and initialize them in waiting state
+			//initialize shared_ptrs
+			worker_mtx_ptr((std::shared_ptr<std::mutex>) &worker_mutex);
+			request_mtx_ptr((std::shared_ptr<std::mutex>) &request_mtx_ptr);
 
+			//create a num_threads number of workers
+			for(int i = 0; i < num_threads; ++i){
+				Worker * new_worker = new Worker(requests, worker_mtx_ptr, request_mtx_ptr);
+				workers.push(new_worker);
 			}
 		}
 		~Dispatcher(){
@@ -53,6 +57,7 @@ class Dispatcher {
 
 		void stop_threads(){
 			//set all worker threads from waiting (for new requests) to not waiting
+
 		}
 };
 
