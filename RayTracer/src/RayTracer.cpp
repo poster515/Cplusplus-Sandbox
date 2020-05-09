@@ -8,21 +8,25 @@
 
 #include <iostream>
 #include <fstream>
-#include "dispatcher.h"
+
+#include "rgb.h"
 #include "bmpwrtr.h"
+#include "request.h"
+#include "dispatcher.hpp"
 
 using namespace std;
 
 int main() {
 
-	//want each pixel to be 24 bits, so we need a 32 bit container (e.g., int)
-	//each int in pixels will be: | unused (8 bits) | R (8 bits) | G (8 bits) | B (8 bits) |
+	//each pixel will be: | R (8 bits) | G (8 bits) | B (8 bits) |
 	RGBTRIPLE **pixels;
-	std::shared_ptr<RGBTRIPLE**> pixels_location(&pixels);
+	std::shared_ptr<RGBTRIPLE**> pixels_ptr(&pixels);
+	std::mutex pixels_mtx;
+	std::shared_ptr<std::mutex> pixels_mtx_ptr;
 
 	//create dispatcher object
 	int num_threads = 4;
-	Dispatcher dp(num_threads); //create num_threads number of workers, running in num_threads number of threads
+	Dispatcher::init(num_threads, pixels_ptr, pixels_mtx_ptr); //create num_threads number of workers, running in num_threads number of threads
 
 	//for now, just make a simple 4x4 pixel object
 	const int height = 400; //in pixels
@@ -30,16 +34,16 @@ int main() {
 	const short int bitsPerPixel = 24; //0x1800
 
 	//initialize new BMP file
-	BitMapWriter BMW(width, height, bitsPerPixel, pixels_location);
+	BitMapWriter BMW(width, height, bitsPerPixel, pixels_ptr);
 
 	//create a request for each pixel in image
 	for (int i = 0; i < height; ++i){
 		for(int j = 0; j < width; ++j){
-			Request * req = new Request(height, width, pixels);
-			dp.addRequest(req);
+			Request * req = new Request(height, width, pixels_ptr);
+			Dispatcher::addRequest(req);
 		}
-
 	}
+	Dispatcher::stop_threads();
 	BMW.waitAndWriteFile();
 
 	return 0;
