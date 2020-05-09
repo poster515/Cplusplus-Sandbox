@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <fstream>
+#include "dispatcher.h"
 #include "bmpwrtr.h"
 
 using namespace std;
@@ -19,6 +20,10 @@ int main() {
 	RGBTRIPLE **pixels;
 	std::shared_ptr<RGBTRIPLE**> pixels_location(&pixels);
 
+	//create dispatcher object
+	int num_threads = 4;
+	Dispatcher dp(num_threads); //create num_threads number of workers, running in num_threads number of threads
+
 	//for now, just make a simple 4x4 pixel object
 	const int height = 400; //in pixels
 	const int width = 300;  //in pixels
@@ -27,9 +32,14 @@ int main() {
 	//initialize new BMP file
 	BitMapWriter BMW(width, height, bitsPerPixel, pixels_location);
 
+	//create a request for each pixel in image
+	for (int i = 0; i < height; ++i){
+		for(int j = 0; j < width; ++j){
+			Request * req = new Request(height, width, pixels);
+			dp.addRequest(req);
+		}
 
-	//TODO: implement image calculator and thread dispatcher
-
+	}
 	BMW.waitAndWriteFile();
 
 	return 0;

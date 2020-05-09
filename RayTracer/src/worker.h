@@ -12,22 +12,19 @@
 #include <thread>
 #include <queue>
 #include <memory>
+#include "dispatcher.h"
 
 class Request;
 
 class Worker {
 	private:
-		std::queue<Request *> &requests;
 		bool running;
 		bool stopped;
 		std::shared_ptr<std::mutex> request_mtx_ptr;
 		std::shared_ptr<std::mutex> worker_mtx_ptr;
 
 	public:
-		//need to constantly be scanning Dispatcher's "requests" queue and grab one if available
-		Worker(std::queue<Request *> &request_queue, std::shared_ptr<std::mutex> r_mtx, std::shared_ptr<std::mutex> w_mtx){
-			//need to provide address of request queue so we know where to look for work
-			requests = request_queue;
+		Worker(std::shared_ptr<std::mutex> r_mtx, std::shared_ptr<std::mutex> w_mtx){
 			running = false;
 			stopped = false;
 			request_mtx_ptr = r_mtx;
@@ -39,6 +36,9 @@ class Worker {
 		void Run(){
 			running = true;
 			while (running){
+				if(Dispatcher::addWorker(this)){
+					//then there are no requests, and dispatcher adds "this" to worker queue
+				}
 				//block/lock request mutex
 
 				//check if there are any requests in request queue
@@ -49,7 +49,11 @@ class Worker {
 					//execute request
 
 				//check if "stop" bool is true, and if so just return.
+
 			}
+
+		}
+		void addRequest(Request *req){
 
 		}
 		void Stop(){
