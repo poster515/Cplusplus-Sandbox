@@ -8,19 +8,26 @@
 #ifndef FUNCTOR_H_
 #define FUNCTOR_H_
 
+#include "rgb.h"
+
 class functor {
 
 	public:
-		int operator()(int x, int y){
+		RGBTRIPLE operator()(int x, int y){
 			int local_x = x;
 			int local_y = y;
 
 			return pixelCalc(local_x, local_y);
 		}
 
-		int pixelCalc(int x, int y){
+		RGBTRIPLE pixelCalc(int x, int y){
 			//THIS IS THE BREAD AND BUTTER
-			return 0;
+			RGBTRIPLE rgb;
+			uint8_t temp = (x + y) % 256;
+			rgb.rgbtRed = temp;
+			rgb.rgbtGreen = temp;
+			rgb.rgbtBlue = temp;
+			return rgb;
 		}
 };
 

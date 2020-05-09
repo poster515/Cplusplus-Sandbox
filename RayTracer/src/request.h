@@ -12,26 +12,28 @@
 #include <memory>
 #include "functor.h"
 
-//some forward declarations
-struct RGBTRIPLE;
-class functor;
-
 class Request {
 	//give an x and y coordinate, and memory location of "pixels"
 	private:
 		int pixel_x;
 		int pixel_y;
-		RGBTRIPLE ** pixels;
+		std::shared_ptr<RGBTRIPLE**> pixels_location;
 
 	public:
-		Request(std::shared_ptr<std::mutex> r_mtx, std::shared_ptr<std::mutex> w_mtx, int x, int y, RGBTRIPLE ** rgb){
+		Request(int x, int y, std::shared_ptr<RGBTRIPLE**> pl){
 			pixel_x = x;
 			pixel_y = y;
-			pixels = rgb;
+			pixels_location = pl;
 		}
-		int CalculatePixel(){
+		void CalculatePixel(std::shared_ptr<std::mutex> pixels_mtx_ptr){
 
-			return 0;
+			std::lock_guard<std::mutex> lg(*pixels_mtx_ptr);
+			RGBTRIPLE rgb = functor()(pixel_x, pixel_y);
+
+			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtRed;
+			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtGreen;
+			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtBlue;
+
 		}
 };
 

@@ -61,21 +61,5 @@ typedef struct
 } __attribute__((__packed__))
 BITMAPINFOHEADER;
 
-/**
- * RGBTRIPLE
- *
- * This structure describes a color consisting of relative intensities of
- * red, green, and blue.
- *
- * Adapted from https://msdn.microsoft.com/en-us/library/dd162939(v=vs.85).aspx.
- */
-typedef struct
-{
-    BYTE rgbtBlue;
-    BYTE rgbtGreen;
-    BYTE rgbtRed;
-} __attribute__((__packed__))
-RGBTRIPLE;
-
 #endif
 

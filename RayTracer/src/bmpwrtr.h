@@ -15,6 +15,7 @@
 #include <algorithm>
 #include "bmp.h"
 
+
 class BitMapWriter {
 	private:
 
