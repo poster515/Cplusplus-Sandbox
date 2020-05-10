@@ -24,6 +24,7 @@ class Worker {
 		bool has_request;
 		std::condition_variable cv;
 		std::shared_ptr<std::mutex> pixels_mtx_ptr;
+		std::unique_lock<std::mutex> ulock;
 
 	public:
 		Worker(std::shared_ptr<std::mutex> p_mtx_ptr){
@@ -32,13 +33,14 @@ class Worker {
 			has_request = false;
 			my_req = nullptr;
 			pixels_mtx_ptr = p_mtx_ptr;
+			ulock = std::unique_lock<std::mutex>(*pixels_mtx_ptr);
 		}
 		~Worker(){
 
 		}
 		void Run();
 
-		void Stop(){ running = false; }
+		void Stop(){ stopped = true; running = false; }
 		void addRequest(Request *req){ my_req = req; }
 		void notifyOfRequest(){ has_request = true; }
 		std::condition_variable * getMyCondVar(){ return &cv; }

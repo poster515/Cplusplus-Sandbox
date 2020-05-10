@@ -26,14 +26,12 @@ class Request {
 			pixels_location = pl;
 		}
 		void CalculatePixel(std::shared_ptr<std::mutex> pixels_mtx_ptr){
-
-			std::lock_guard<std::mutex> lg(*pixels_mtx_ptr);
 			RGBTRIPLE rgb = functor()(pixel_x, pixel_y);
 
+			std::lock_guard<std::mutex> lg(*pixels_mtx_ptr);
 			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtRed;
 			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtGreen;
 			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtBlue;
-
 		}
 };
 

@@ -75,19 +75,19 @@ class BitMapWriter {
 void BitMapWriter::initialize_pixels(int x_dim, int y_dim, short int bitsPerPixel){
 	pixels = new RGBTRIPLE*[y_dim];
 
-	int fraction = std::max(1, 256 / (this->bi.biHeight * this->bi.biWidth));
+//	int fraction = std::max(1, 256 / (this->bi.biHeight * this->bi.biWidth));
 	for (int i = 0; i < y_dim; i++){
 
 		*(pixels + i) = new RGBTRIPLE[x_dim];
 		for(int j = 0; j < x_dim; j++){
 
-			uint8_t temp = ((fraction*i) + (fraction*j)) % 256;
+			uint8_t temp = 0x80;
 
 			pixels[i][j].rgbtRed = temp;
 			pixels[i][j].rgbtGreen = temp;
 			pixels[i][j].rgbtBlue = temp;
 
-			std::cout << "RGB at row i: " << i << ", col j: " << j << " = " << (int)temp << std::endl;
+//			std::cout << "RGB at row i: " << i << ", col j: " << j << " = " << (int)temp << std::endl;
 		}
 	}
 }

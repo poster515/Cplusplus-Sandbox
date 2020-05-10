@@ -14,13 +14,6 @@ class functor {
 
 	public:
 		RGBTRIPLE operator()(int x, int y){
-			int local_x = x;
-			int local_y = y;
-
-			return pixelCalc(local_x, local_y);
-		}
-
-		RGBTRIPLE pixelCalc(int x, int y){
 			//THIS IS THE BREAD AND BUTTER
 			RGBTRIPLE rgb;
 			uint8_t temp = (x + y) % 256;

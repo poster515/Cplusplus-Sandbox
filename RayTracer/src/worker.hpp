@@ -9,7 +9,7 @@
 #define WORKER_HPP_
 
 #include "worker.h"
-#include "dispatcher.h"
+#include "dispatcher.hpp"
 
 void Worker::Run(){
 	running = true;
@@ -21,8 +21,7 @@ void Worker::Run(){
 				return;
 			} else {
 				//use condition variable controlled by dispatcher to let worker know it has a request to execute
-				std::unique_lock<std::mutex> ulock(*pixels_mtx_ptr);
-				cv.wait(ulock, []{ return checkRequest(); });
+				cv.wait(ulock, [&]{ return this->checkRequest(); });
 				ulock.unlock();
 				ulock.release();
 			}
