@@ -30,9 +30,11 @@ class Request {
 
 			std::lock_guard<std::mutex> lg(*pixels_mtx_ptr);
 			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtRed;
-			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtGreen;
-			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtBlue;
+			(*pixels_location)[pixel_y][pixel_x].rgbtGreen = rgb.rgbtGreen;
+			(*pixels_location)[pixel_y][pixel_x].rgbtBlue = rgb.rgbtBlue;
 		}
+		int get_x(){ return pixel_x; }
+		int get_y(){ return pixel_y; }
 };
 
 

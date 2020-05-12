@@ -27,7 +27,7 @@ class Worker {
 		std::unique_lock<std::mutex> ulock;
 
 	public:
-		Worker(std::shared_ptr<std::mutex> p_mtx_ptr){
+		Worker(std::shared_ptr<std::mutex> p_mtx_ptr, std::shared_ptr<std::mutex> cout_mtx_ptr){
 			running = false;
 			stopped = false;
 			has_request = false;

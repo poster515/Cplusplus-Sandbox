@@ -14,6 +14,8 @@
 #include "request.h"
 #include "dispatcher.hpp"
 
+#define _DEBUG_
+
 using namespace std;
 
 int main() {
@@ -24,9 +26,16 @@ int main() {
 	std::mutex pixels_mtx;
 	std::shared_ptr<std::mutex> pixels_mtx_ptr(&pixels_mtx);
 
+	#ifdef _DEBUG_
+	std::mutex cout_mtx;
+	std::shared_ptr<std::mutex> cout_mtx_ptr(&cout_mtx);
+	std::mutex count_mtx;
+	std::shared_ptr<std::mutex> count_mtx_ptr(&count_mtx);
+	#endif
+
 	// initialize worker threads
 	int num_threads = 4;
-	Dispatcher::init(num_threads, pixels_ptr, pixels_mtx_ptr); //create num_threads number of workers, running in num_threads number of threads
+	Dispatcher::init(num_threads, pixels_ptr, pixels_mtx_ptr, cout_mtx_ptr, count_mtx_ptr); //create num_threads number of workers, running in num_threads number of threads
 
 	//set image parameters
 	const int height = 400; //in pixels
@@ -43,6 +52,22 @@ int main() {
 			Dispatcher::addRequest(req);
 		}
 	}
+
+	while(1){
+
+		int total_pixels = height * width;
+		if (count_mtx.try_lock()){
+//			cout_mtx.lock();
+//			std::cout << "total count = " << Dispatcher::count << std::endl;
+//			cout_mtx.unlock();
+			if(Dispatcher::count == total_pixels){
+				//then we've processed all the pixel values
+				break;
+			}
+		}
+		count_mtx.unlock();
+	}
+
 	//stop threads and write image to BMP file
 	Dispatcher::stop_threads();
 	BMW.waitAndWriteFile();

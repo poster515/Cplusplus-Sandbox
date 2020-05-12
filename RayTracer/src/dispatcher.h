@@ -30,12 +30,22 @@ class Dispatcher {
 		static std::mutex request_mutex;
 		static std::shared_ptr<std::mutex> request_mtx_ptr;
 
+		static std::shared_ptr<std::mutex> stdcout_mtx_ptr;
+		static std::shared_ptr<std::mutex> count_mtx_ptr;
+
 		static std::condition_variable cv;
+		static unsigned int num_threads;
+		static int count;
 
 		Dispatcher(){}
 		~Dispatcher();
 
-		static void init(int num_threads, std::shared_ptr<RGBTRIPLE**> pixels_ptr, std::shared_ptr<std::mutex> pixels_mutex_ptr);
+		static void init(int num_threads,
+						std::shared_ptr<RGBTRIPLE**> pixels_ptr,
+						std::shared_ptr<std::mutex> pixels_mutex_ptr,
+						std::shared_ptr<std::mutex> cout_mtx_ptr,
+						std::shared_ptr<std::mutex> count_mtx_ptr);
+
 		static void addRequest(Request * request);
 		static bool addWorker(Worker * worker, Request * &workers_req_addr);
 		static void stop_threads();
