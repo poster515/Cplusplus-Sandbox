@@ -10,6 +10,7 @@
 
 #include <mutex>
 #include <memory>
+#include <thread>
 #include "functor.h"
 
 class Request {
@@ -17,21 +18,31 @@ class Request {
 	private:
 		int pixel_x;
 		int pixel_y;
-		std::shared_ptr<RGBTRIPLE**> pixels_location;
+		RGBTRIPLE** pixels; // actual pixel data
+		std::shared_ptr<std::mutex> cout_mtx_ptr;
+		std::shared_ptr<std::mutex> pixels_mtx_ptr;
 
 	public:
-		Request(int x, int y, std::shared_ptr<RGBTRIPLE**> pl){
+		Request(int y, int x,
+			RGBTRIPLE** pl,
+			std::shared_ptr<std::mutex> cout_mtx_ptr,
+			std::shared_ptr<std::mutex> pixels_mtx_ptr){
 			pixel_x = x;
 			pixel_y = y;
-			pixels_location = pl;
+			pixels = pl;
+			this->cout_mtx_ptr = cout_mtx_ptr;
+			this->pixels_mtx_ptr = pixels_mtx_ptr;
 		}
-		void CalculatePixel(std::shared_ptr<std::mutex> pixels_mtx_ptr){
-			RGBTRIPLE rgb = functor()(pixel_x, pixel_y);
+		void CalculatePixel(){
 
-			std::lock_guard<std::mutex> lg(*pixels_mtx_ptr);
-			(*pixels_location)[pixel_y][pixel_x].rgbtRed = rgb.rgbtRed;
-			(*pixels_location)[pixel_y][pixel_x].rgbtGreen = rgb.rgbtGreen;
-			(*pixels_location)[pixel_y][pixel_x].rgbtBlue = rgb.rgbtBlue;
+			RGBTRIPLE * rgb = functor()(pixel_x, pixel_y);
+			(*pixels_mtx_ptr).lock();
+			pixels[pixel_y][pixel_x].rgbtRed = rgb->rgbtRed;
+			pixels[pixel_y][pixel_x].rgbtGreen = rgb->rgbtGreen;
+			pixels[pixel_y][pixel_x].rgbtBlue = rgb->rgbtBlue;
+			(*pixels_mtx_ptr).unlock();
+
+			delete rgb;
 		}
 		int get_x(){ return pixel_x; }
 		int get_y(){ return pixel_y; }

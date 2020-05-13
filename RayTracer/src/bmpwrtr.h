@@ -13,6 +13,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <mutex>
 #include "bmp.h"
 
 
@@ -24,19 +25,24 @@ class BitMapWriter {
 
 		RGBTRIPLE **pixels; // actual pixel data
 		int row_padding; //number of bytes to pad at end of each row
-
-		void initialize_pixels(int, int, short int);
+		std::shared_ptr<std::mutex> pixels_mtx_ptr;
 
 	public:
-
+		RGBTRIPLE** initialize_pixels(int x_dim, int y_dim, short int bitsPerPixel);
 		void waitAndWriteFile();
 
-		BitMapWriter(int xdim_in_pixels, int ydim_in_pixels, short int bitsPerPixel, std::shared_ptr<RGBTRIPLE**> pixels_location){
+		BitMapWriter(int xdim_in_pixels,
+					int ydim_in_pixels,
+					short int bitsPerPixel,
+					std::shared_ptr<RGBTRIPLE **> pixels_location,
+					std::shared_ptr<std::mutex> pixels_mtx_ptr){
+
+			this->pixels_mtx_ptr = pixels_mtx_ptr;
 			pixels = *pixels_location; //need to dereference shared_ptr here
 
 			int temp_bytes_per_row = xdim_in_pixels * (bitsPerPixel / 8); //NOTE THIS DOES NOT WORK FOR bpp < 8
 			row_padding = ((4 - (temp_bytes_per_row % 4)) % 4);
-			std::cout << "Padding = " << row_padding << std::endl;
+//			std::cout << "Padding = " << row_padding << std::endl;
 
 			bf.bfType = 0x4D42; //i.e., 0x4D42 or "BM": 'B' = 0x42, 'M' = 0x4D
 			bf.bfSize = 54 + ((temp_bytes_per_row + row_padding) * ydim_in_pixels); //0x02 The size, in bytes, of the bitmap file.
@@ -44,8 +50,8 @@ class BitMapWriter {
 			bf.bfReserved2 = 0; //0x08
 			bf.bfOffBits = 54;  //0x0A The offset, in bytes, from the beginning of the BITMAPFILEHEADER structure to the bitmap bits.
 
-			std::cout << "Filesize = " << bf.bfSize << " bytes" << std::endl;
-			std::cout << "PixelDataOffset = " << bf.bfOffBits << std::endl;
+//			std::cout << "Filesize = " << bf.bfSize << " bytes" << std::endl;
+//			std::cout << "PixelDataOffset = " << bf.bfOffBits << std::endl;
 
 
 			bi.biSize = 40;		//40d, header is 40 bytes long
@@ -60,7 +66,6 @@ class BitMapWriter {
 			bi.biClrUsed = 0;		//all colors
 			bi.biClrImportant = 0; 	//all colors (i.e., no preference)
 
-			initialize_pixels(xdim_in_pixels, ydim_in_pixels, bitsPerPixel);
 		}
 		~BitMapWriter(){
 			for (int i = 0; i < bi.biHeight; ++i){
@@ -72,24 +77,24 @@ class BitMapWriter {
 
 };
 
-void BitMapWriter::initialize_pixels(int x_dim, int y_dim, short int bitsPerPixel){
-	pixels = new RGBTRIPLE*[y_dim];
+RGBTRIPLE** BitMapWriter::initialize_pixels(int x_dim, int y_dim, short int bitsPerPixel){
 
 //	int fraction = std::max(1, 256 / (this->bi.biHeight * this->bi.biWidth));
-	for (int i = 0; i < y_dim; i++){
+	(*pixels_mtx_ptr).lock();
+	pixels = new RGBTRIPLE*[y_dim];
+	for (int i = 0; i < y_dim; ++i){
 
-		*(pixels + i) = new RGBTRIPLE[x_dim];
-		for(int j = 0; j < x_dim; j++){
+		pixels[i] = new RGBTRIPLE[x_dim];
+		for(int j = 0; j < x_dim; ++j){
 
-			uint8_t temp = 0x80;
-
+			uint8_t temp = (i + j) % 256;
 			pixels[i][j].rgbtRed = temp;
 			pixels[i][j].rgbtGreen = temp;
 			pixels[i][j].rgbtBlue = temp;
-
-//			std::cout << "RGB at row i: " << i << ", col j: " << j << " = " << (int)temp << std::endl;
 		}
 	}
+	(*pixels_mtx_ptr).unlock();
+	return pixels;
 }
 
 void BitMapWriter::waitAndWriteFile(){
@@ -107,7 +112,9 @@ void BitMapWriter::waitAndWriteFile(){
 	//now write main body of file
 	for(int i = 0; i < bi.biHeight; i++){
 		for(int j = 0; j < bi.biWidth; j++){
+			(*pixels_mtx_ptr).lock();
 			new_file.write((const char*)&pixels[i][j], sizeof(RGBTRIPLE));
+			(*pixels_mtx_ptr).unlock();
 			total_bytes += sizeof(RGBTRIPLE);
 			std::cout << "total data bytes written: " << total_bytes << std::endl;
 		}

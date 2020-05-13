@@ -29,13 +29,14 @@ int main() {
 	#ifdef _DEBUG_
 	std::mutex cout_mtx;
 	std::shared_ptr<std::mutex> cout_mtx_ptr(&cout_mtx);
+	#endif
+
 	std::mutex count_mtx;
 	std::shared_ptr<std::mutex> count_mtx_ptr(&count_mtx);
-	#endif
 
 	// initialize worker threads
 	int num_threads = 4;
-	Dispatcher::init(num_threads, pixels_ptr, pixels_mtx_ptr, cout_mtx_ptr, count_mtx_ptr); //create num_threads number of workers, running in num_threads number of threads
+	Dispatcher::init(num_threads, pixels_mtx_ptr, cout_mtx_ptr, count_mtx_ptr); //create num_threads number of workers, running in num_threads number of threads
 
 	//set image parameters
 	const int height = 400; //in pixels
@@ -43,12 +44,13 @@ int main() {
 	const short int bitsPerPixel = 24; //0x1800
 
 	//initialize new BMP file
-	BitMapWriter BMW(width, height, bitsPerPixel, pixels_ptr);
+	BitMapWriter BMW(width, height, bitsPerPixel, pixels_ptr, pixels_mtx_ptr);
+	pixels = BMW.initialize_pixels(width, height, bitsPerPixel);
 
 	//create a request for each pixel in image and calculate/write each pixel
 	for (int i = 0; i < height; ++i){
 		for(int j = 0; j < width; ++j){
-			Request * req = new Request(i, j, pixels_ptr);
+			Request * req = new Request(i, j, pixels, Dispatcher::stdcout_mtx_ptr, pixels_mtx_ptr);
 			Dispatcher::addRequest(req);
 		}
 	}
@@ -57,15 +59,14 @@ int main() {
 
 		int total_pixels = height * width;
 		if (count_mtx.try_lock()){
-//			cout_mtx.lock();
-//			std::cout << "total count = " << Dispatcher::count << std::endl;
-//			cout_mtx.unlock();
 			if(Dispatcher::count == total_pixels){
 				//then we've processed all the pixel values
+				count_mtx.unlock();
 				break;
 			}
+			count_mtx.unlock();
 		}
-		count_mtx.unlock();
+
 	}
 
 	//stop threads and write image to BMP file

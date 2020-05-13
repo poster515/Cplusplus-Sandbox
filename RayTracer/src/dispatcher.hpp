@@ -13,6 +13,7 @@
 
 std::mutex Dispatcher::worker_mutex;
 std::mutex Dispatcher::request_mutex;
+std::mutex Dispatcher::addworker_mutex;
 
 std::queue<Worker *> Dispatcher::workers;
 std::queue<Request *> Dispatcher::requests;
@@ -23,13 +24,13 @@ std::shared_ptr<std::mutex> Dispatcher::worker_mtx_ptr((std::shared_ptr<std::mut
 std::shared_ptr<std::mutex> Dispatcher::request_mtx_ptr((std::shared_ptr<std::mutex>)(&Dispatcher::request_mutex));
 std::shared_ptr<std::mutex> Dispatcher::stdcout_mtx_ptr;
 std::shared_ptr<std::mutex> Dispatcher::count_mtx_ptr;
+std::shared_ptr<std::mutex> Dispatcher::addworker_mtx_ptr((std::shared_ptr<std::mutex>)(&Dispatcher::addworker_mutex));
 
 unsigned int Dispatcher::num_threads;
 int Dispatcher::count;
 
 
 void Dispatcher::init(int num_threads,
-						std::shared_ptr<RGBTRIPLE**> pixels_ptr,
 						std::shared_ptr<std::mutex> pixels_mutex_ptr,
 						std::shared_ptr<std::mutex> cout_mtx_ptr,
 						std::shared_ptr<std::mutex> count_mtx_ptr){
@@ -40,7 +41,7 @@ void Dispatcher::init(int num_threads,
 	//create a num_threads number of workers
 	for(int i = 0; i < num_threads; ++i){
 		//create new worker
-		Worker * new_worker = new Worker(pixels_mutex_ptr, cout_mtx_ptr);
+		Worker * new_worker = new Worker(Dispatcher::addworker_mtx_ptr);
 		//now create new thread that runs worker's Run() function, and and add thread to vector
 		std::thread * thread = new std::thread(&Worker::Run, new_worker);
 		Dispatcher::threads.push_back(thread);
@@ -65,9 +66,9 @@ void Dispatcher::addRequest(Request * request){
 		Dispatcher::request_mutex.lock();
 		Dispatcher::requests.push(request);
 		Dispatcher::request_mutex.unlock();
-		(*stdcout_mtx_ptr).lock();
+//		(*stdcout_mtx_ptr).lock();
 //		std::cout << "adding request to queue. x = " << request->get_x() << ", y = " << request->get_y() << std::endl;
-		(*stdcout_mtx_ptr).unlock();
+//		(*stdcout_mtx_ptr).unlock();
 	}
 }
 

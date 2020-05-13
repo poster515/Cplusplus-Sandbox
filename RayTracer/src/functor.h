@@ -13,13 +13,13 @@
 class functor {
 
 	public:
-		RGBTRIPLE operator()(int x, int y){
+		RGBTRIPLE * operator()(int x, int y){
 			//THIS IS THE BREAD AND BUTTER
-			RGBTRIPLE rgb;
+			RGBTRIPLE *rgb = new RGBTRIPLE;
 			uint8_t temp = (x + y) % 256;
-			rgb.rgbtRed = temp;
-			rgb.rgbtGreen = temp;
-			rgb.rgbtBlue = temp;
+			rgb->rgbtRed = temp;
+			rgb->rgbtGreen = temp;
+			rgb->rgbtBlue = temp;
 			return rgb;
 		}
 };

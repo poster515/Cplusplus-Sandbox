@@ -12,6 +12,7 @@
 #include <thread>
 #include <queue>
 #include <memory>
+#include <atomic>
 #include <condition_variable>
 
 class Request;
@@ -19,21 +20,22 @@ class Request;
 class Worker {
 	private:
 		Request *my_req;
-		bool running;
-		bool stopped;
-		bool has_request;
+		std::atomic<bool> running;
+		std::atomic<bool> stopped;
+		std::atomic<bool> has_request;
 		std::condition_variable cv;
-		std::shared_ptr<std::mutex> pixels_mtx_ptr;
+		std::mutex my_mutex;
 		std::unique_lock<std::mutex> ulock;
+		std::shared_ptr<std::mutex> addworker_mtx_ptr;
 
 	public:
-		Worker(std::shared_ptr<std::mutex> p_mtx_ptr, std::shared_ptr<std::mutex> cout_mtx_ptr){
+		Worker(std::shared_ptr<std::mutex> aw_mtx_ptr){
 			running = false;
 			stopped = false;
 			has_request = false;
 			my_req = nullptr;
-			pixels_mtx_ptr = p_mtx_ptr;
-			ulock = std::unique_lock<std::mutex>(*pixels_mtx_ptr);
+			ulock = std::unique_lock<std::mutex>(my_mutex);
+			addworker_mtx_ptr = aw_mtx_ptr;
 		}
 		~Worker(){
 
