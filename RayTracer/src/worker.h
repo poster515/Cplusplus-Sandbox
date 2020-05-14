@@ -38,7 +38,9 @@ class Worker {
 			addworker_mtx_ptr = aw_mtx_ptr;
 		}
 		~Worker(){
-
+			if (this->my_req != nullptr){
+				delete my_req;
+			}
 		}
 		void Run();
 

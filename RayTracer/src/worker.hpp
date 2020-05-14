@@ -21,16 +21,9 @@ void Worker::Run(){
 			//then there are no requests, and dispatcher adds "this" to worker queue
 			if(stopped){
 				//we've stopped running the program and can simply return
-				(*Dispatcher::stdcout_mtx_ptr).lock();
-				std::cout << "worker is stopped. tid = " << std::this_thread::get_id() << std::endl;
-				(*Dispatcher::stdcout_mtx_ptr).unlock();
 				return;
 			} else {
 				//use condition variable controlled by dispatcher to let worker know it has a request to execute
-				(*Dispatcher::stdcout_mtx_ptr).lock();
-				std::cout << "worker will now wait for new request. tid = " << std::this_thread::get_id() << std::endl;
-				(*Dispatcher::stdcout_mtx_ptr).unlock();
-
 				cv.wait(ulock, [&]{ return this->checkRequest(); });
 				ulock.unlock();
 			}
@@ -39,27 +32,26 @@ void Worker::Run(){
 		}
 
 		if(my_req != nullptr){
-			(*Dispatcher::stdcout_mtx_ptr).lock();
-			std::cout << "worker has new request. tid = " << std::this_thread::get_id() <<
-					", x = " << (*my_req).get_x() << ", y = " << (*my_req).get_y() << std::endl;
-			(*Dispatcher::stdcout_mtx_ptr).unlock();
 			// call request function to calculate and store pixel data
-
 			(*my_req).CalculatePixel();
 
-			(*Dispatcher::stdcout_mtx_ptr).lock();
-			std::cout << "worker has completed calc. tid = " << std::this_thread::get_id() << std::endl;
-			(*Dispatcher::stdcout_mtx_ptr).unlock();
+			//now increment total_pixels calculated
+			(*Dispatcher::count_mtx_ptr).lock();
+			++Dispatcher::count;
+			std::cout << "worker completed request. tid = "
+					<< std::this_thread::get_id()
+					<< ", y = " << (*my_req).get_y()
+					<< ", x = " << (*my_req).get_x()
+					<< ", count = " << Dispatcher::count
+					<< std::endl;
+			(*Dispatcher::count_mtx_ptr).unlock();
+
 			//delete this request since it's now complete
 			delete my_req;
 			//reset "this->my_req" to nullptr to handle another request
 			my_req = nullptr;
 			//reset has_request variable
 			has_request = false;
-			//now increment total_pixels calculated
-			(*Dispatcher::count_mtx_ptr).lock();
-			++Dispatcher::count;
-			(*Dispatcher::count_mtx_ptr).unlock();
 		}
 	}
 }

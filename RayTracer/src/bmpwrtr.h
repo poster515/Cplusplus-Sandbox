@@ -42,17 +42,12 @@ class BitMapWriter {
 
 			int temp_bytes_per_row = xdim_in_pixels * (bitsPerPixel / 8); //NOTE THIS DOES NOT WORK FOR bpp < 8
 			row_padding = ((4 - (temp_bytes_per_row % 4)) % 4);
-//			std::cout << "Padding = " << row_padding << std::endl;
 
 			bf.bfType = 0x4D42; //i.e., 0x4D42 or "BM": 'B' = 0x42, 'M' = 0x4D
 			bf.bfSize = 54 + ((temp_bytes_per_row + row_padding) * ydim_in_pixels); //0x02 The size, in bytes, of the bitmap file.
 			bf.bfReserved1 = 0; //0x06
 			bf.bfReserved2 = 0; //0x08
 			bf.bfOffBits = 54;  //0x0A The offset, in bytes, from the beginning of the BITMAPFILEHEADER structure to the bitmap bits.
-
-//			std::cout << "Filesize = " << bf.bfSize << " bytes" << std::endl;
-//			std::cout << "PixelDataOffset = " << bf.bfOffBits << std::endl;
-
 
 			bi.biSize = 40;		//40d, header is 40 bytes long
 			bi.biWidth = xdim_in_pixels;	//represents width of final image in 'pixels'
@@ -116,14 +111,11 @@ void BitMapWriter::waitAndWriteFile(){
 			new_file.write((const char*)&pixels[i][j], sizeof(RGBTRIPLE));
 			(*pixels_mtx_ptr).unlock();
 			total_bytes += sizeof(RGBTRIPLE);
-			std::cout << "total data bytes written: " << total_bytes << std::endl;
 		}
 		//need to ensure that padding is correct, add single byte a total of row_padding times
-
 		for(int j = 0; j < row_padding; ++j){
 			new_file.write((const char*)&zero, sizeof(BYTE));
 			total_bytes += sizeof(BYTE);
-			std::cout << "adding extra byte. total data bytes written: " << total_bytes << std::endl;
 		}
 	}
 	new_file.close();

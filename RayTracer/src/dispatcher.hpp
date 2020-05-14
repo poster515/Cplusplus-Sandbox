@@ -57,18 +57,11 @@ void Dispatcher::addRequest(Request * request){
 		(*(Dispatcher::workers.front()->getMyCondVar())).notify_one();
 		Dispatcher::workers.pop();
 		Dispatcher::worker_mutex.unlock();
-		(*stdcout_mtx_ptr).lock();
-		std::cout << "adding request to worker. x = " << request->get_x() << ", y = " << request->get_y() << std::endl;
-		std::cout << "number of available workers = " << Dispatcher::workers.size() << std::endl;
-		(*stdcout_mtx_ptr).unlock();
 	} else {
 		Dispatcher::worker_mutex.unlock();
 		Dispatcher::request_mutex.lock();
 		Dispatcher::requests.push(request);
 		Dispatcher::request_mutex.unlock();
-//		(*stdcout_mtx_ptr).lock();
-//		std::cout << "adding request to queue. x = " << request->get_x() << ", y = " << request->get_y() << std::endl;
-//		(*stdcout_mtx_ptr).unlock();
 	}
 }
 
@@ -79,40 +72,30 @@ bool Dispatcher::addWorker(Worker * worker, Request * &workers_req_addr){
 		workers_req_addr = Dispatcher::requests.front();
 		Dispatcher::requests.pop();
 		Dispatcher::request_mutex.unlock();
-
-		(*stdcout_mtx_ptr).lock();
-		std::cout << "assigning worker with request. x = " << Dispatcher::requests.front()->get_x() << ", y = " << Dispatcher::requests.front()->get_y() << std::endl;
-		(*stdcout_mtx_ptr).unlock();
 	} else {
 		Dispatcher::request_mutex.unlock();
 		Dispatcher::worker_mutex.lock();
 		Dispatcher::workers.push(worker);
 		Dispatcher::worker_mutex.unlock();
-
-		(*stdcout_mtx_ptr).lock();
-		std::cout << "assigning worker to queue, queue.size() = " << workers.size() << std::endl;
-		(*stdcout_mtx_ptr).unlock();
 		return true;
 	}
 	return false;
 }
 
 void Dispatcher::stop_threads(){
-	//STOP all workers
-	for(auto it = workers.front(); !workers.empty(); ++it){
-		//since worker will be waiting, set it to STOP and
-		(*it).Stop();
-		(*it).addRequest(nullptr);
-		(*(*it).getMyCondVar()).notify_one();
-	}
+//	//finally delete all workers
+//	auto it = Dispatcher::workers.front();
+//	while (!Dispatcher::workers.empty()){
+//		(*it).addRequest(nullptr);
+//		(*it).Stop();
+//		(*(*it).getMyCondVar()).notify_one();
+//		delete Dispatcher::workers.front();
+//		Dispatcher::workers.pop();
+//		it = Dispatcher::workers.front();
+//	}
 	//then we're done. join and destroy all worker threads
 	for(auto it = Dispatcher::threads.begin(); it != Dispatcher::threads.end(); ++it){
 		(*(*it)).join();
-	}
-	//finally delete all workers
-	while (!Dispatcher::workers.empty()){
-		delete Dispatcher::workers.front();
-		Dispatcher::workers.pop();
 	}
 }
 

@@ -8,6 +8,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 #include "rgb.h"
 #include "bmpwrtr.h"
@@ -55,9 +57,11 @@ int main() {
 		}
 	}
 
+	//wait for threads to have written the correct number of pixels
 	while(1){
 
 		int total_pixels = height * width;
+		std::this_thread::sleep_for(std::chrono::nanoseconds(1000));
 		if (count_mtx.try_lock()){
 			if(Dispatcher::count == total_pixels){
 				//then we've processed all the pixel values
@@ -69,9 +73,12 @@ int main() {
 
 	}
 
-	//stop threads and write image to BMP file
-	Dispatcher::stop_threads();
+	//now write to file
 	BMW.waitAndWriteFile();
+
+	//stop threads and destroy worker objects
+	Dispatcher::stop_threads();
+
 
 	return 0;
 }
