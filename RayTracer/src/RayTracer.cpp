@@ -52,7 +52,7 @@ int main() {
 	//create a request for each pixel in image and calculate/write each pixel
 	for (int i = 0; i < height; ++i){
 		for(int j = 0; j < width; ++j){
-			Request * req = new Request(i, j, pixels, Dispatcher::stdcout_mtx_ptr, pixels_mtx_ptr);
+			Request * req = new Request(i, j, pixels, Dispatcher::stdcout_mtx_ptr, pixels_mtx_ptr, width, height);
 			Dispatcher::addRequest(req);
 		}
 	}

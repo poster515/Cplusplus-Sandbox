@@ -11,6 +11,7 @@
 #include "dispatcher.h"
 #include "worker.hpp"
 
+
 std::mutex Dispatcher::worker_mutex;
 std::mutex Dispatcher::request_mutex;
 std::mutex Dispatcher::addworker_mutex;
@@ -84,18 +85,28 @@ bool Dispatcher::addWorker(Worker * worker, Request * &workers_req_addr){
 
 void Dispatcher::stop_threads(){
 //	//finally delete all workers
+
+
+//
 //	auto it = Dispatcher::workers.front();
 //	while (!Dispatcher::workers.empty()){
 //		(*it).addRequest(nullptr);
 //		(*it).Stop();
 //		(*(*it).getMyCondVar()).notify_one();
+//		(*Dispatcher::stdcout_mtx_ptr).lock();
+//		std::cout << "deleting worker" << std::endl;
+//		(*Dispatcher::stdcout_mtx_ptr).unlock();
 //		delete Dispatcher::workers.front();
 //		Dispatcher::workers.pop();
 //		it = Dispatcher::workers.front();
 //	}
-	//then we're done. join and destroy all worker threads
+
+//	then we're done. join and destroy all worker threads
 	for(auto it = Dispatcher::threads.begin(); it != Dispatcher::threads.end(); ++it){
-		(*(*it)).join();
+		if ((*(*it)).joinable()){
+			std::cout << "joining thread: " << (*(*it)).get_id() << std::endl;
+			(*(*it)).join();
+		}
 	}
 }
 

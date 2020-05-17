@@ -33,6 +33,7 @@ void Worker::Run(){
 
 		if(my_req != nullptr){
 			// call request function to calculate and store pixel data
+			//int image_width, int image_height, int eye_x, int eye_y, int eye_z
 			(*my_req).CalculatePixel();
 
 			//now increment total_pixels calculated
@@ -52,8 +53,15 @@ void Worker::Run(){
 			my_req = nullptr;
 			//reset has_request variable
 			has_request = false;
+		} else {
+			(*Dispatcher::stdcout_mtx_ptr).lock();
+			std::cout << "have nullptr request" << std::endl;
+			(*Dispatcher::stdcout_mtx_ptr).unlock();
 		}
 	}
+	(*Dispatcher::stdcout_mtx_ptr).lock();
+	std::cout << "worker is stopped" << std::endl;
+	(*Dispatcher::stdcout_mtx_ptr).unlock();
 }
 
 
