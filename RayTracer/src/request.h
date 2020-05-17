@@ -16,14 +16,13 @@
 class Request {
 	//give an x and y coordinate, and memory location of "pixels"
 	private:
-		int pixel_x;
-		int pixel_y;
 		int width;
 		int height;
-		RGBTRIPLE** pixels; // actual pixel data
-		std::shared_ptr<std::mutex> cout_mtx_ptr;
+		RGBTRIPLE** pixels; // actual pixel data pointer
+		std::shared_ptr<std::mutex> cout_mtx_ptr; //for debug purposes
 		std::shared_ptr<std::mutex> pixels_mtx_ptr;
 		Point eye_position;
+		Point pixel;
 
 	public:
 		Request(int y, int x,
@@ -32,8 +31,6 @@ class Request {
 			std::shared_ptr<std::mutex> pixels_mtx_ptr,
 			const int width,
 			const int height){
-				pixel_x = x;
-				pixel_y = y;
 				pixels = pl;
 				this->cout_mtx_ptr = cout_mtx_ptr;
 				this->pixels_mtx_ptr = pixels_mtx_ptr;
@@ -42,21 +39,22 @@ class Request {
 
 				// set an arbitrary eye position. should make this more user-friendly.
 				eye_position = Point(width / 2, height / 2, (width + height) / 2);
+				pixel = Point(x, y, 0);
 		}
 
 		void CalculatePixel(){
-			functor * func = new functor(width, height, &eye_position);
-			RGBTRIPLE * rgb = (*func)(pixel_x, pixel_y);
+			functor * func = new functor(width, height, &eye_position, &pixel);
+			RGBTRIPLE * rgb = (*func)(pixel.x, pixel.y);
 			(*pixels_mtx_ptr).lock();
-			pixels[pixel_y][pixel_x].rgbtRed = rgb->rgbtRed;
-			pixels[pixel_y][pixel_x].rgbtGreen = rgb->rgbtGreen;
-			pixels[pixel_y][pixel_x].rgbtBlue = rgb->rgbtBlue;
+			pixels[pixel.y][pixel.x].rgbtRed = rgb->rgbtRed;
+			pixels[pixel.y][pixel.x].rgbtGreen = rgb->rgbtGreen;
+			pixels[pixel.y][pixel.x].rgbtBlue = rgb->rgbtBlue;
 			(*pixels_mtx_ptr).unlock();
 
 			delete rgb;
 		}
-		int get_x(){ return pixel_x; }
-		int get_y(){ return pixel_y; }
+		int get_x(){ return pixel.x; }
+		int get_y(){ return pixel.y; }
 };
 
 

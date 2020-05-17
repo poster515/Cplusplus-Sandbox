@@ -42,6 +42,11 @@ int main() {
 	//start counter for the AB thread
 	AB.RunCounter();
 
+//	AB.Run();
+//	SP.FFT(AB.getRealBufferAddress());
+//	FH.filterDFT(SP.getRealBufferAddress(), SP.getImagBufferAddress());
+//	IH.IFFT(FH.getRealBufferAddress(), FH.getImagBufferAddress());
+
 	//run threads to do everything
 	std::thread data_thread(&AudioBuffer<double>::Run, &AB);
 	std::thread DSP_thread(&SignalProcessor<double>::FFT, &SP, AB.getRealBufferAddress());

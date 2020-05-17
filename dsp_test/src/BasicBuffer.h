@@ -57,6 +57,7 @@ class BasicBuffer{
 
 		}
         ~BasicBuffer(){
+        	while(!(*this->print_mutex_ptr).try_lock()){}
         	std::cout << "BB destructor called." << std::endl;
 			for (int i = 0; i < NUM_CHANNELS; ++i){
 				delete[] this->real_buffer[i];
@@ -64,6 +65,7 @@ class BasicBuffer{
 			}
 			delete[] this->real_buffer;
 			delete[] this->imag_buffer;
+			(*this->print_mutex_ptr).unlock();
         }
         T ** getRealBufferAddress(){
         	return real_buffer;
