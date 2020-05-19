@@ -8,36 +8,49 @@
 #ifndef OBJECTS_H_
 #define OBJECTS_H_
 
-//file to capture various objects
-//makes several different types of objects (e.g., sphere)
-//with an "object" template class wrapper for each
+enum eObjectTypes {
+	eSphere,
+	eCube,
+	eUnknown
+};
 
-class Sphere {
+class Object {
 	private:
-		int radius;
+		eObjectTypes my_type;
+		float epsilon;
+
 
 	public:
-		Sphere(int r = 1){
-			radius = r;
+
+		Object(eObjectTypes eOT){
+			my_type = eOT;
+			epsilon = 0.0001; //will probably need to tweak
+		}
+
+		float Proximity(Point * eye, Point * p){
+			float distance(0.0);
+
+			switch(my_type){
+				case(eSphere):
+					//calculate distance to Point p using spherical equation
+					distance = 0.0;
+					break;
+				case(eCube):
+					//calculate distance to Point p using Cartesian equation
+					distance = 0.0;
+					break;
+				case(eUnknown):
+					//give some default distance
+					distance = 0.0;
+					break;
+			}
+
+			return distance;
+		}
+		bool Intersect(Ray primRay, Point * pHit, Ray * nHit){
+
+			return false;
 		}
 };
-
-class Cube {
-	private:
-		int width;
-
-	public:
-		Cube(int w = 1){
-			width = w;
-		}
-};
-
-template <class T>
-class Object : public T {
-
-};
-
-
-
 
 #endif /* OBJECTS_H_ */

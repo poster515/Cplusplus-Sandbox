@@ -50,7 +50,7 @@ class Request {
 			pixels[pixel.y][pixel.x].rgbtGreen = rgb->rgbtGreen;
 			pixels[pixel.y][pixel.x].rgbtBlue = rgb->rgbtBlue;
 			(*pixels_mtx_ptr).unlock();
-
+			delete func;
 			delete rgb;
 		}
 		int get_x(){ return pixel.x; }

@@ -18,7 +18,7 @@ std::mutex Dispatcher::addworker_mutex;
 
 std::queue<Worker *> Dispatcher::workers;
 std::queue<Request *> Dispatcher::requests;
-std::vector<std::thread *> Dispatcher::threads{};
+std::vector<std::thread *> Dispatcher::threads;
 
 //initialize shared_ptrs
 std::shared_ptr<std::mutex> Dispatcher::worker_mtx_ptr((std::shared_ptr<std::mutex>)(&Dispatcher::worker_mutex));
