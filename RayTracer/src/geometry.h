@@ -46,14 +46,38 @@ struct Ray{
 		this->B = _B;
 		this->C = _C;
 	}
+	//rvalue Point-based constructor
+	Ray(Point&& A){
+		this->A = A.x;
+		this->B = A.y;
+		this->C = A.z;
+	}
+
+	//rvalue Ray-based constructor
+	Ray(Ray&& R){
+		this->A = R.A;
+		this->B = R.B;
+		this->C = R.C;
+	}
 
 	//move assignment/type conversion
 	Ray& operator=(Point&& A){
 		this->A = A.x;
 		this->B = A.y;
 		this->C = A.z;
-
 		return *this;
+	}
+	Ray operator/(float denom){
+		Ray temp;
+		temp.A /= denom;
+		temp.B /= denom;
+		temp.C /= denom;
+		return temp;
+	}
+	float dot(Ray &r2){
+		float temp;
+		temp = (this->A * r2.A) + (this->B * r2.B) + (this->C * r2.C);
+		return temp;
 	}
 };
 

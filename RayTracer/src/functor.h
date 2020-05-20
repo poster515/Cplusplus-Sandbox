@@ -16,49 +16,44 @@
 
 class functor {
 	private:
-		Point * eye_position;
+		Point eye_position;
 		Point * pixel;
 
-		void computePrimRay(int pixel_x, int pixel_y, Ray &primRay){
-			//subtract two points to create "ray"
-			primRay = (*pixel - *eye_position);
-		}
-
 	public:
-		functor(int image_width, int image_height, Point *eye_position, Point *pixel){
+		functor(int image_width, int image_height, Point *pixel){
 			//just copy pointer to request's eye_position
-			this->eye_position = eye_position;
+			eye_position = Point(image_width / 2, image_height / 2, (image_width + image_height) / 2);
 			this->pixel = pixel;
 		}
 
-		RGBTRIPLE * operator()(int x, int y){
+		void operator()(RGBTRIPLE &rgb){
 
 			#ifdef __N_ALGO__
 				// compute primary ray direction
-				Ray primRay;
-				computePrimRay(x, y, primRay);
+				Ray primRay(*pixel - eye_position);
 
-				// shoot prim ray in the scene and search for intersection
-				Point pHit;
-				Ray nHit;
-				Object object(eUnknown);
-				float minDist = std::numeric_limits<float>::infinity();
-
+				//this is where we define background objects
 				std::vector<Object> objects;
-				Object sphere1(eSphere);
+				Object sphere1(eSphere, 2, 5, 9, 2.0, 0xFF, 0xFF, 0xFF);
 				objects.push_back(sphere1);
 
-				for (unsigned int k = 0; k < objects.size(); ++k) {
-					if (objects[k].Intersect(primRay, &pHit, &nHit)) {
-						float distance = objects[k].Proximity(eye_position, &pHit);
-						if (distance < minDist) {
-							object = objects[k];
-							minDist = distance; // update min distance
-						}
-					}
+				// shoot primary ray into scene and search for intersection
+				Point pHit;
+				Ray nHit;
+				Object *hit_object(nullptr);
+				float minDist = std::numeric_limits<float>::infinity();
+
+				for (auto object : objects) {
+					object.Intersect(primRay, &pHit, &nHit, minDist, hit_object, eye_position);
 				}
 
-//				if (object != NULL) {
+				uint8_t temp = (pixel->x + pixel->y) % 256;
+				rgb.rgbtRed = temp;
+				rgb.rgbtGreen = temp;
+				rgb.rgbtBlue = temp;
+
+				if (hit_object != nullptr) {
+					rgb = (*hit_object).getMyColor();
 //					// compute illumination
 //					Ray shadowRay;
 //					shadowRay.direction = lightPosition - pHit;
@@ -69,18 +64,14 @@ class functor {
 //							break;
 //						}
 //					}
-//				}
+				} else {
+
+				}
 //				if (!isInShadow)
 //					pixels[i][j] = object->color * light.brightness;
 //				else
 //					pixels[i][j] = 0;
 
-				RGBTRIPLE *rgb = new RGBTRIPLE;
-				uint8_t temp = (x + y) % 256;
-				rgb->rgbtRed = temp;
-				rgb->rgbtGreen = temp;
-				rgb->rgbtBlue = temp;
-				return rgb;
 			#endif
 		}
 };
