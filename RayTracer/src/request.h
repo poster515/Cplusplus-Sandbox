@@ -39,15 +39,14 @@ class Request {
 		}
 
 		void CalculatePixel(){
-			functor * func = new functor(width, height, &pixel);
+			functor func1(width, height, &pixel);
 			RGBTRIPLE rgb;
-			(*func)(rgb);
+			func1(rgb);
 			(*pixels_mtx_ptr).lock();
 			pixels[pixel.y][pixel.x].rgbtRed = rgb.rgbtRed;
 			pixels[pixel.y][pixel.x].rgbtGreen = rgb.rgbtGreen;
 			pixels[pixel.y][pixel.x].rgbtBlue = rgb.rgbtBlue;
 			(*pixels_mtx_ptr).unlock();
-			delete func;
 		}
 		int get_x(){ return pixel.x; }
 		int get_y(){ return pixel.y; }

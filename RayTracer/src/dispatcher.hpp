@@ -84,22 +84,24 @@ bool Dispatcher::addWorker(Worker * worker, Request * &workers_req_addr){
 }
 
 void Dispatcher::stop_threads(){
-//	//finally delete all workers
+//	delete all workers
+	auto it = Dispatcher::workers.front();
+	while (!Dispatcher::workers.empty()){
+		//notify worker and end its Run() function
+		(*it).addRequest(nullptr);
+		(*it).Stop();
+		(*(*it).getMyCondVar()).notify_one();
+		(*Dispatcher::stdcout_mtx_ptr).lock();
+		std::cout << "deleting worker" << std::endl;
+		(*Dispatcher::stdcout_mtx_ptr).unlock();
 
-
-//
-//	auto it = Dispatcher::workers.front();
-//	while (!Dispatcher::workers.empty()){
-//		(*it).addRequest(nullptr);
-//		(*it).Stop();
-//		(*(*it).getMyCondVar()).notify_one();
-//		(*Dispatcher::stdcout_mtx_ptr).lock();
-//		std::cout << "deleting worker" << std::endl;
-//		(*Dispatcher::stdcout_mtx_ptr).unlock();
-//		delete Dispatcher::workers.front();
-//		Dispatcher::workers.pop();
-//		it = Dispatcher::workers.front();
-//	}
+		//now delete worker completely
+		(*Dispatcher::worker_mtx_ptr).lock();
+		delete Dispatcher::workers.front();
+		Dispatcher::workers.pop();
+		it = Dispatcher::workers.front();
+		(*Dispatcher::worker_mtx_ptr).unlock();
+	}
 
 //	then we're done. join and destroy all worker threads
 	for(auto it = Dispatcher::threads.begin(); it != Dispatcher::threads.end(); ++it){

@@ -41,8 +41,8 @@ int main() {
 	Dispatcher::init(num_threads, pixels_mtx_ptr, cout_mtx_ptr, count_mtx_ptr); //create num_threads number of workers, running in num_threads number of threads
 
 	//set image parameters
-	const int height = 400; //in pixels
-	const int width = 300;  //in pixels
+	const int height = 120; //in pixels
+	const int width = 120;  //in pixels
 	const short int bitsPerPixel = 24; //0x1800
 
 	//initialize new BMP file

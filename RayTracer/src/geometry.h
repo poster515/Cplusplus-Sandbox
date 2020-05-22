@@ -36,21 +36,21 @@ struct Point{
 //i.e., a directional vector or "ray"
 //represents R = A<i> + B<j> + C<k>
 struct Ray{
-	int A;
-	int B;
-	int C;
+	float A;
+	float B;
+	float C;
 
 	//normal/default constructor
-	Ray(int _A = 0, int _B = 0, int _C = 0){
+	Ray(float _A = 0, float _B = 0, float _C = 0){
 		this->A = _A;
 		this->B = _B;
 		this->C = _C;
 	}
 	//rvalue Point-based constructor
 	Ray(Point&& A){
-		this->A = A.x;
-		this->B = A.y;
-		this->C = A.z;
+		this->A = (float)A.x;
+		this->B = (float)A.y;
+		this->C = (float)A.z;
 	}
 
 	//rvalue Ray-based constructor
@@ -62,16 +62,16 @@ struct Ray{
 
 	//move assignment/type conversion
 	Ray& operator=(Point&& A){
-		this->A = A.x;
-		this->B = A.y;
-		this->C = A.z;
+		this->A = (float)A.x;
+		this->B = (float)A.y;
+		this->C = (float)A.z;
 		return *this;
 	}
 	Ray operator/(float denom){
 		Ray temp;
-		temp.A /= denom;
-		temp.B /= denom;
-		temp.C /= denom;
+		temp.A = this->A / denom;
+		temp.B = this->B / denom;
+		temp.C = this->C / denom;
 		return temp;
 	}
 	float dot(Ray &r2){
