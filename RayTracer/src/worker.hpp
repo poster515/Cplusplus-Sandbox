@@ -13,25 +13,20 @@
 #include "dispatcher.hpp"
 
 void Worker::Run(){
-	running = true;
-	while (running){
+	this->running = true;
+	while (this->running){
 		(*addworker_mtx_ptr).lock();
 		if(Dispatcher::addWorker(this, my_req)){
 			(*addworker_mtx_ptr).unlock();
-			//then there are no requests, and dispatcher adds "this" to worker queue
-			if(stopped){
-				//we've stopped running the program and can simply return
-				return;
-			} else {
-				//use condition variable controlled by dispatcher to let worker know it has a request to execute
-				cv.wait(ulock, [&]{ return this->checkRequest(); });
-				ulock.unlock();
-			}
+			//then there are no requests, and dispatcher adds "this" to worker queue.
+			//use condition variable controlled by dispatcher to let worker know it has a request to execute
+			cv.wait(ulock, [&]{ return this->checkRequest(); });
+			ulock.unlock();
 		} else {
 			(*addworker_mtx_ptr).unlock();
 		}
-
-		if(my_req != nullptr){
+//		if(stopped != true){
+		if(!stopped && (my_req != nullptr)){
 			// call request function to calculate and store pixel data
 			//int image_width, int image_height, int eye_x, int eye_y, int eye_z
 			(*my_req).CalculatePixel();
@@ -55,13 +50,10 @@ void Worker::Run(){
 			has_request = false;
 		} else {
 			(*Dispatcher::stdcout_mtx_ptr).lock();
-			std::cout << "have nullptr request" << std::endl;
+			std::cout << "worker stopped" << std::endl;
 			(*Dispatcher::stdcout_mtx_ptr).unlock();
 		}
 	}
-	(*Dispatcher::stdcout_mtx_ptr).lock();
-	std::cout << "worker is stopped" << std::endl;
-	(*Dispatcher::stdcout_mtx_ptr).unlock();
 }
 
 

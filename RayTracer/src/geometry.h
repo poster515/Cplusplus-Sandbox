@@ -8,6 +8,7 @@
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 
+#include <math.h>
 
 //structure to represent simple point in space
 struct Point{
@@ -21,14 +22,27 @@ struct Point{
 		this->y = y;
 		this->z = z;
 	}
+	//rvalue based assignment
+	Point& operator=(Point&&A){
+		this->x = A.x;
+		this->y = A.y;
+		this->z = A.z;
+		return *this;
+	}
 
 	//overloaded subtraction operator;
-	Point operator- (Point &A){
+	Point operator- (const Point &A){
 		Point temp;
 		temp.x = this->x - A.x;
 		temp.y = this->y - A.y;
 		temp.z = this->z - A.z;
 		return temp;
+	}
+	Point& operator*(float mag){
+		this->x *= mag;
+		this->y *= mag;
+		this->z *= mag;
+		return *this;
 	}
 };
 
@@ -67,6 +81,7 @@ struct Ray{
 		this->C = (float)A.z;
 		return *this;
 	}
+
 	Ray operator/(float denom){
 		Ray temp;
 		temp.A = this->A / denom;
@@ -74,11 +89,29 @@ struct Ray{
 		temp.C = this->C / denom;
 		return temp;
 	}
-	float dot(Ray &r2){
+	Point operator*(float mag){
+		Point temp;
+		temp.x = this->A * mag;
+		temp.y = this->B * mag;
+		temp.z = this->C * mag;
+		return temp;
+	}
+	float dot(const Ray &r2){
 		float temp;
 		temp = (this->A * r2.A) + (this->B * r2.B) + (this->C * r2.C);
 		return temp;
 	}
+
+	float cos_theta(const Ray &r2){
+		//compute magnitudes of both rays
+		float mag1(std::sqrt(std::pow(this->A, 2.0) + std::pow(this->B, 2.0) + std::pow(this->C, 2.0)));
+		float mag2(std::sqrt(std::pow(r2.A, 2.0) + std::pow(r2.B, 2.0) + std::pow(r2.C, 2.0)));
+
+		//now find cos(theta) by dividing dot product by product of magnitudes
+		float temp((this->dot(r2))/(mag1*mag2));
+		return temp;
+	}
+
 };
 
 

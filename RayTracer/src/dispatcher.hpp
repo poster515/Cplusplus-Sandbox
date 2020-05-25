@@ -18,7 +18,7 @@ std::mutex Dispatcher::addworker_mutex;
 
 std::queue<Worker *> Dispatcher::workers;
 std::queue<Request *> Dispatcher::requests;
-std::vector<std::thread *> Dispatcher::threads;
+std::vector<std::pair<std::thread *, Worker *>> Dispatcher::threads;
 
 //initialize shared_ptrs
 std::shared_ptr<std::mutex> Dispatcher::worker_mtx_ptr((std::shared_ptr<std::mutex>)(&Dispatcher::worker_mutex));
@@ -45,7 +45,7 @@ void Dispatcher::init(int num_threads,
 		Worker * new_worker = new Worker(Dispatcher::addworker_mtx_ptr);
 		//now create new thread that runs worker's Run() function, and and add thread to vector
 		std::thread * thread = new std::thread(&Worker::Run, new_worker);
-		Dispatcher::threads.push_back(thread);
+		Dispatcher::threads.push_back(std::pair<std::thread *, Worker *>(thread, new_worker));
 	}
 }
 
@@ -85,30 +85,30 @@ bool Dispatcher::addWorker(Worker * worker, Request * &workers_req_addr){
 
 void Dispatcher::stop_threads(){
 //	delete all workers
-	auto it = Dispatcher::workers.front();
-	while (!Dispatcher::workers.empty()){
-		//notify worker and end its Run() function
-		(*it).addRequest(nullptr);
-		(*it).Stop();
-		(*(*it).getMyCondVar()).notify_one();
+
+	while(!Dispatcher::threads.empty()){
+		auto it = Dispatcher::threads.begin();
+		(std::get<1>(*it))->addRequest(nullptr);
+		(std::get<1>(*it))->Stop();
+		(std::get<1>(*it))->getMyCondVar()->notify_one();
+
 		(*Dispatcher::stdcout_mtx_ptr).lock();
 		std::cout << "deleting worker" << std::endl;
 		(*Dispatcher::stdcout_mtx_ptr).unlock();
 
-		//now delete worker completely
-		(*Dispatcher::worker_mtx_ptr).lock();
-		delete Dispatcher::workers.front();
-		Dispatcher::workers.pop();
-		it = Dispatcher::workers.front();
-		(*Dispatcher::worker_mtx_ptr).unlock();
-	}
-
-//	then we're done. join and destroy all worker threads
-	for(auto it = Dispatcher::threads.begin(); it != Dispatcher::threads.end(); ++it){
-		if ((*(*it)).joinable()){
-			std::cout << "joining thread: " << (*(*it)).get_id() << std::endl;
-			(*(*it)).join();
+		if ((std::get<0>(*it))->joinable()){
+			(*Dispatcher::stdcout_mtx_ptr).lock();
+			std::cout << "joining thread: " << (std::get<0>(*it))->get_id() << std::endl;
+			(*Dispatcher::stdcout_mtx_ptr).unlock();
+			(std::get<0>(*it))->join();
 		}
+		(*Dispatcher::stdcout_mtx_ptr).lock();
+		std::cout << "thread is joined" << std::endl;
+		(*Dispatcher::stdcout_mtx_ptr).unlock();
+		//now delete worker completely
+		delete (std::get<1>(*it));
+		delete (std::get<0>(*it));
+		Dispatcher::threads.erase(Dispatcher::threads.begin());
 	}
 }
 

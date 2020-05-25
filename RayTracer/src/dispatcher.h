@@ -23,7 +23,7 @@ class Dispatcher {
 	public:
 		static std::queue<Worker *> workers;
 		static std::queue<Request *> requests;
-		static std::vector<std::thread *> threads;
+		static std::vector<std::pair<std::thread *, Worker *>> threads;
 
 
 		static std::mutex worker_mutex;
