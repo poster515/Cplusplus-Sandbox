@@ -22,8 +22,22 @@ struct Point{
 		this->y = y;
 		this->z = z;
 	}
+	//copy constructor
+	Point(const Point &p){
+		this->x = p.x;
+		this->y = p.y;
+		this->z = p.z;
+	}
+
 	//rvalue based assignment
-	Point& operator=(Point&&A){
+	Point& operator=(Point &&A){
+		this->x = A.x;
+		this->y = A.y;
+		this->z = A.z;
+		return *this;
+	}
+
+	Point& operator=(const Point &A){
 		this->x = A.x;
 		this->y = A.y;
 		this->z = A.z;
@@ -38,12 +52,12 @@ struct Point{
 		temp.z = this->z - A.z;
 		return temp;
 	}
-	Point& operator*(float mag){
-		this->x *= mag;
-		this->y *= mag;
-		this->z *= mag;
-		return *this;
-	}
+//	Point& operator*(float mag){
+//		this->x *= mag;
+//		this->y *= mag;
+//		this->z *= mag;
+//		return *this;
+//	}
 };
 
 //structure to represent a difference vector between two points
@@ -82,6 +96,19 @@ struct Ray{
 		return *this;
 	}
 
+//	Ray& operator=(Ray&& R){
+//		this->A = R.A;
+//		this->B = R.B;
+//		this->C = R.C;
+//		return *this;
+//	}
+	Ray& operator=(const Ray &R){
+		this->A = R.A;
+		this->B = R.B;
+		this->C = R.C;
+		return *this;
+	}
+
 	Ray operator/(float denom){
 		Ray temp;
 		temp.A = this->A / denom;
@@ -102,6 +129,7 @@ struct Ray{
 		return temp;
 	}
 
+	//compute the cosine of the angle between two rays
 	float cos_theta(const Ray &r2){
 		//compute magnitudes of both rays
 		float mag1(std::sqrt(std::pow(this->A, 2.0) + std::pow(this->B, 2.0) + std::pow(this->C, 2.0)));

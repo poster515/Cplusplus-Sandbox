@@ -8,9 +8,13 @@
 #ifndef FUNCTOR_H_
 #define FUNCTOR_H_
 
+#include <cassert>
+
 #include "rgb.h"
 #include "geometry.h"
 #include "objects.h"
+
+//#define NDEBUG
 
 class functor {
 	private:
@@ -30,16 +34,17 @@ class functor {
 
 			//this is where we define background objects
 			std::vector<Object> objects;
-			Object sphere1(eSphere, 70, 90, 45, 50, 0x7F, 0x7F, 0x7F);
+			Object sphere1(eSphere, 70, 90, 45, 50, 0x7F, 0x7F, 0x7F, 1);
 			objects.push_back(sphere1);
-			Object sphere2(eSphere, 90, 90, 20, 30, 0xFF, 0x00, 0x00);
+			Object sphere2(eSphere, 90, 90, 20, 30, 0xFF, 0x00, 0x00, 2);
 			objects.push_back(sphere2);
-			Object sphere3(eSphere, 30, 30, 90, 30, 0x00, 0xFF, 0x00);
+			Object sphere3(eSphere, 30, 30, 90, 30, 0x00, 0xFF, 0x00, 3);
 			objects.push_back(sphere3);
 
 			// shoot primary ray into scene and search for intersection
 			Point pHit;
-			Ray nHit;
+			Ray nHitDir;
+			Ray primRay(*pixel - eye_position);
 			Object hit_object;
 			Object shadow_object;
 			float minDist = std::numeric_limits<float>::infinity();
@@ -48,45 +53,50 @@ class functor {
 				//Intersect determines whether ray from eye to pixel hits this object
 				//if it does, "hit_object" will be pointer to the object
 				//also, "hit_object" has a private member that can be used to obtain color
-				object.Intersect(pixel, pHit, nHit, minDist, hit_object, eye_position);
+				object.Intersect(primRay, pHit, nHitDir, minDist, hit_object, eye_position);
 			}
 
 			if (hit_object.getMyType() != eUnknown) {
-				rgb = hit_object.getMyColor();
-				// compute illumination
+
 				Ray shadowRay(light - pHit);
+				float cos_theta(shadowRay.cos_theta(nHitDir));
 
-				float cos_theta(shadowRay.cos_theta(nHit));
-				bool isInShadow = false;
+				//for debugging only, need to ensure cos_theta is valid
+				assert(cos_theta >= -1 && cos_theta <= 1);
 
-				if ((cos_theta < 0) && (cos_theta >= -1)){
-					//then we're in a shadow
-					isInShadow = true;
-				} else {
-					//not in the shadow of the hit object
+				// first check if we're on the "sunny side" of the object
+				if (cos_theta > 0){
 					//determine if any other objects are between light and hit object
-					for (auto object: objects) {
+					primRay = (light - pHit);
+					minDist = std::numeric_limits<float>::infinity();
+					for (auto object : objects) {
 						//run Intersect algorithm again with new pixel and eye_position values
-						object.Intersect(pixel, pHit, nHit, minDist, hit_object, eye_position);
-						if (/* hit_object != object */) {
-							isInShadow = true;
-							break;
-						}
+						object.Intersect(primRay, pHit, nHitDir, minDist, shadow_object, pHit);
 					}
 				}
+				RGBTRIPLE color = hit_object.getMyColor();
 
+				if (shadow_object.getMyType() != eUnknown){
+					//then we're in a shadow
+					//right shift by two to effectively darken by 4x
+					rgb.rgbtRed = color.rgbtRed >> 2;
+					rgb.rgbtGreen = color.rgbtRed >> 2;
+					rgb.rgbtBlue = color.rgbtRed >> 2;
+				} else {
+					//not in any other object's shadow.
+					//use a linear scale, based on angle between primary ray and pHit to light
+					rgb.rgbtRed = (color.rgbtRed + (int)(cos_theta * 128)) % 256;
+					rgb.rgbtGreen = (color.rgbtGreen + (int)(cos_theta * 128)) % 256;
+					rgb.rgbtBlue = (color.rgbtBlue + (int)(cos_theta * 128)) % 256;
+				}
+				return;
 			} else {
 				uint8_t temp = 0xFF;
 				rgb.rgbtRed = temp;
 				rgb.rgbtGreen = temp;
 				rgb.rgbtBlue = temp;
-
+				return;
 			}
-//			if (!isInShadow)
-//				pixels[i][j] = object->color * light.brightness;
-//			else
-//				pixels[i][j] = 0;
-
 		}
 };
 

@@ -23,10 +23,11 @@ class Object {
 		float radius;
 		Point center;
 		RGBTRIPLE my_color;
+		int id;
 
 	public:
 
-		Object(eObjectTypes eOT=eUnknown, int x=1, int y=1, int z=1, float r=1.0, uint8_t R=0x00, uint8_t G=0x00, uint8_t B=0x00){
+		Object(eObjectTypes eOT=eUnknown, int x=1, int y=1, int z=1, float r=1.0, uint8_t R=0x00, uint8_t G=0x00, uint8_t B=0x00, int ID=0){
 			my_type = eOT;
 			epsilon = 0.0001; //will probably need to tweak
 			center.x = x;
@@ -36,9 +37,19 @@ class Object {
 			my_color.rgbtRed = R; //default color is black
 			my_color.rgbtGreen = G;
 			my_color.rgbtBlue = B;
+			id = ID;
+		}
+		Object& operator=(const Object &o){
+			my_type = o.my_type;
+			epsilon = o.epsilon;
+			center = o.center;
+			radius = o.radius;
+			my_color = o.my_color;
+			id = o.id;
+			return *this;
 		}
 
-		void Intersect(Point *pixel, Point &pHit, Ray &nHit, float &minDist, Object &minObject, Point &ep){
+		void Intersect(Ray &primRay, Point &pHit, Ray &nHitDir, float &minDist, Object &minObject, Point &primRayOrigin){
 			//basically determine whether primary ray falls within radius of object
 			//need to determine if primary ray hits this object, and if so, whether it is closer than
 			//current closest object
@@ -47,18 +58,17 @@ class Object {
 
 			//Point *pixel: 		Point (i.e., pixel) that we're writing to (address of Request's pixel)
 			//Point &pHit: 			Point where ray hits object, if applicable
-			//Ray &nHit: 			ray that is normal to object, where primary ray hits this object
+			//Ray &nHitDir:			unit ray that is normal to object, where primary ray hits this object
 			//float &minDist: 		current magnitude of distance to closest object
 			//Object &minObject: 	current closest object
-			//Point &ep: 			eye position.
+			//Point &primRayOrigin:	origin of primary ray.
 
 			// first, compute primary ray and directional vector
-			Ray primRay(*pixel - ep);
 			float PR_mag(std::sqrt(std::pow(primRay.A, 2.0) + std::pow(primRay.B, 2.0) + std::pow(primRay.C, 2.0)));
 			Ray primRay_dir(primRay / PR_mag);
 
 			//next, ray from eye to object and directional vector
-			Ray E2O(center - ep);
+			Ray E2O(center - primRayOrigin);
 			float E2O_mag(std::sqrt(std::pow(E2O.A, 2.0) + std::pow(E2O.B, 2.0) + std::pow(E2O.C, 2.0)));
 			Ray E2O_dir(E2O / E2O_mag);
 
@@ -84,9 +94,15 @@ class Object {
 						if ((RAR_cosine - RAR_sine_to_sph_edge) < minDist){
 							minDist = E2O_mag*cos_theta;
 							minObject = *this;
-							pHit = primRay_dir * (RAR_cosine - RAR_sine_to_sph_edge);
-							nHit = (pHit - center);
+							pHit = (primRay_dir * (RAR_cosine - RAR_sine_to_sph_edge)) - primRayOrigin;
+
+							//now compute unit directional vector normal to the surface
+							Ray nHit(pHit - center);
+							float nHit_mag(std::sqrt(std::pow(nHit.A, 2.0) + std::pow(nHit.B, 2.0) + std::pow(nHit.C, 2.0)));
+							nHitDir = nHit / nHit_mag;
 						}
+					} else {
+						//then we don't have a hit on this object
 					}
 
 					break;
@@ -108,6 +124,10 @@ class Object {
 
 		RGBTRIPLE getMyColor(){
 			return my_color;
+		}
+
+		int getMyID(){
+			return id;
 		}
 };
 
