@@ -40,12 +40,12 @@ class Object {
 			id = ID;
 		}
 		Object& operator=(const Object &o){
-			my_type = o.my_type;
-			epsilon = o.epsilon;
-			center = o.center;
-			radius = o.radius;
-			my_color = o.my_color;
-			id = o.id;
+			this->my_type = o.my_type;
+			this->epsilon = o.epsilon;
+			this->center = o.center;
+			this->radius = o.radius;
+			this->my_color = o.my_color;
+			this->id = o.id;
 			return *this;
 		}
 
@@ -91,10 +91,11 @@ class Object {
 				case(eSphere):
 					if (RAR_sine <= radius){
 						//then we're inside the sphere somewhere
-						if ((RAR_cosine - RAR_sine_to_sph_edge) < minDist){
-							minDist = E2O_mag*cos_theta;
+						float hit_distance(RAR_cosine - RAR_sine_to_sph_edge);
+						if (hit_distance < minDist){
+							minDist = hit_distance;
 							minObject = *this;
-							pHit = (primRay_dir * (RAR_cosine - RAR_sine_to_sph_edge)) - primRayOrigin;
+							pHit = (primRay_dir * hit_distance) - primRayOrigin;
 
 							//now compute unit directional vector normal to the surface
 							Ray nHit(pHit - center);

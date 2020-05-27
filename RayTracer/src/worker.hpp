@@ -25,8 +25,8 @@ void Worker::Run(){
 		} else {
 			(*addworker_mtx_ptr).unlock();
 		}
-//		if(stopped != true){
-		if(!stopped && (my_req != nullptr)){
+		if(stopped != true){
+//		if(my_req != nullptr){
 			// call request function to calculate and store pixel data
 			//int image_width, int image_height, int eye_x, int eye_y, int eye_z
 			(*my_req).CalculatePixel();
@@ -45,10 +45,11 @@ void Worker::Run(){
 			//delete this request since it's now complete
 			delete my_req;
 			//reset "this->my_req" to nullptr to handle another request
-			my_req = nullptr;
+			//my_req = nullptr;
 			//reset has_request variable
 			has_request = false;
-		} else {
+		}
+		else {
 			(*Dispatcher::stdcout_mtx_ptr).lock();
 			std::cout << "worker stopped" << std::endl;
 			(*Dispatcher::stdcout_mtx_ptr).unlock();

@@ -124,8 +124,7 @@ struct Ray{
 		return temp;
 	}
 	float dot(const Ray &r2){
-		float temp;
-		temp = (this->A * r2.A) + (this->B * r2.B) + (this->C * r2.C);
+		float temp((this->A * r2.A) + (this->B * r2.B) + (this->C * r2.C));
 		return temp;
 	}
 

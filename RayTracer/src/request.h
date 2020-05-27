@@ -43,9 +43,7 @@ class Request {
 			RGBTRIPLE rgb;
 			func1(rgb);
 			(*pixels_mtx_ptr).lock();
-			pixels[pixel.y][pixel.x].rgbtRed = rgb.rgbtRed;
-			pixels[pixel.y][pixel.x].rgbtGreen = rgb.rgbtGreen;
-			pixels[pixel.y][pixel.x].rgbtBlue = rgb.rgbtBlue;
+			pixels[pixel.y][pixel.x] = rgb;
 			(*pixels_mtx_ptr).unlock();
 		}
 		int get_x(){ return pixel.x; }
