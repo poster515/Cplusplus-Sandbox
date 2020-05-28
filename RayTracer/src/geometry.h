@@ -52,12 +52,14 @@ struct Point{
 		temp.z = this->z - A.z;
 		return temp;
 	}
-//	Point& operator*(float mag){
-//		this->x *= mag;
-//		this->y *= mag;
-//		this->z *= mag;
-//		return *this;
-//	}
+	//overloaded subtraction operator;
+	Point operator+ (const Point &A){
+		Point temp;
+		temp.x = this->x + A.x;
+		temp.y = this->y + A.y;
+		temp.z = this->z + A.z;
+		return temp;
+	}
 };
 
 //structure to represent a difference vector between two points

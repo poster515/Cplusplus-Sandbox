@@ -15,7 +15,7 @@
 #include "geometry.h"
 #include "objects.h"
 
-#define clamp(value)( std::min(std::max(0, value), 256) )
+#define clamp(value) std::min(std::max(0, value), 255)
 
 //#define NDEBUG
 
@@ -85,17 +85,26 @@ class functor {
 
 				if (shadow_object.getMyType() != eUnknown){
 					//then we're in a shadow
-					//right shift by two to effectively darken by 4x
-					rgb.rgbtRed = color.rgbtRed >> 2;
-					rgb.rgbtGreen = color.rgbtRed >> 2;
-					rgb.rgbtBlue = color.rgbtRed >> 2;
+					//right shift by one to divide by 2
+					float light_scale_R(color.rgbtRed >> 1);
+					float light_scale_G(color.rgbtGreen >> 1);
+					float light_scale_B(color.rgbtBlue >> 1);
+
+					rgb.rgbtRed = (cos_theta + 1.0) * light_scale_R;
+					rgb.rgbtGreen = (cos_theta + 1.0) * light_scale_G;
+					rgb.rgbtBlue = (cos_theta + 1.0) * light_scale_B;
 				} else {
 					//not in any other object's shadow.
 					//use a linear scale, based on angle between primary ray and pHit to light
-					float light_scale(100);
-					rgb.rgbtRed = clamp(color.rgbtRed + (int8_t)(cos_theta * light_scale));
-					rgb.rgbtGreen = clamp(color.rgbtGreen + (int8_t)(cos_theta * light_scale));
-					rgb.rgbtBlue = clamp(color.rgbtBlue + (int8_t)(cos_theta * light_scale));
+					float offset(255);
+					float light_scale_R(offset-color.rgbtRed);
+					float light_scale_G(offset-color.rgbtGreen);
+					float light_scale_B(offset-color.rgbtBlue);
+
+					rgb.rgbtRed = (uint8_t)((int)color.rgbtRed + (int)(cos_theta * light_scale_R));
+					rgb.rgbtGreen = (uint8_t)((int)color.rgbtGreen + (int)(cos_theta * light_scale_G));
+					rgb.rgbtBlue = (uint8_t)((int)color.rgbtBlue + (int)(cos_theta * light_scale_B));
+
 				}
 				return;
 			} else {

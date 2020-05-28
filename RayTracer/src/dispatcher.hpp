@@ -89,6 +89,7 @@ void Dispatcher::stop_threads(){
 	while(!Dispatcher::threads.empty()){
 		auto it = Dispatcher::threads.begin();
 		(std::get<1>(*it))->addRequest(nullptr);
+		(std::get<1>(*it))->notifyOfRequest();
 		(std::get<1>(*it))->Stop();
 		(std::get<1>(*it))->getMyCondVar()->notify_one();
 
@@ -100,7 +101,10 @@ void Dispatcher::stop_threads(){
 			(*Dispatcher::stdcout_mtx_ptr).lock();
 			std::cout << "joining thread: " << (std::get<0>(*it))->get_id() << std::endl;
 			(*Dispatcher::stdcout_mtx_ptr).unlock();
-			(std::get<0>(*it))->join();
+
+			if ((std::get<0>(*it))->joinable()){
+				(std::get<0>(*it))->join();
+			}
 		}
 		(*Dispatcher::stdcout_mtx_ptr).lock();
 		std::cout << "thread is joined" << std::endl;

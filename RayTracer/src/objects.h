@@ -95,7 +95,7 @@ class Object {
 						if (hit_distance < minDist){
 							minDist = hit_distance;
 							minObject = *this;
-							pHit = (primRay_dir * hit_distance) - primRayOrigin;
+							pHit = (primRay_dir * hit_distance) + primRayOrigin;
 
 							//now compute unit directional vector normal to the surface
 							Ray nHit(pHit - center);
