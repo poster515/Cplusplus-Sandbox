@@ -73,7 +73,8 @@ class Object {
 			Ray E2O_dir(E2O / E2O_mag);
 
 			//determine cosine of angle between eye-to-pixel and eye-to-center rays
-			float cos_theta(primRay_dir.dot(E2O_dir));
+//			float cos_theta(primRay_dir.dot(E2O_dir));
+			float cos_theta(primRay.cos_theta(E2O));
 
 			//now compute right-angle length between primary ray and eye-to-object
 			float RAR_sine(E2O_mag * std::sqrt(1 - std::pow(cos_theta, 2.0)));
@@ -89,7 +90,7 @@ class Object {
 
 			switch(my_type){
 				case(eSphere):
-					if (RAR_sine <= radius){
+					if (RAR_sine <= (radius + epsilon)){
 						//then we're inside the sphere somewhere
 						float hit_distance(RAR_cosine - RAR_sine_to_sph_edge);
 						if (hit_distance < minDist){
@@ -103,7 +104,8 @@ class Object {
 							nHitDir = nHit / nHit_mag;
 						}
 					} else {
-						//then we don't have a hit on this object
+//						minObject.setMyType(eUnknown);
+//						minObject.setMyID(0);
 					}
 
 					break;
@@ -129,6 +131,13 @@ class Object {
 
 		int getMyID(){
 			return id;
+		}
+
+		void setMyType(eObjectTypes type){
+			my_type = type;
+		}
+		void setMyID(int ID){
+			id = ID;
 		}
 };
 

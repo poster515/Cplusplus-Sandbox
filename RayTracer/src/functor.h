@@ -15,7 +15,8 @@
 #include "geometry.h"
 #include "objects.h"
 
-#define clamp(value) std::min(std::max(0, value), 255)
+
+#define clamp(value) std::min(std::max(0.0, value), 255.0)
 
 //#define NDEBUG
 
@@ -23,12 +24,14 @@ class functor {
 	private:
 		Point eye_position;
 		Point * pixel;
+		std::shared_ptr<std::mutex> stdcout_mtx_ptr;
 
 	public:
-		functor(int image_width, int image_height, Point *pixel){
+		functor(int image_width, int image_height, Point *pixel, std::shared_ptr<std::mutex> cout_mtx_ptr){
 			//just copy pointer to request's eye_position
 			eye_position = Point(image_width / 2, image_height / 2, -(image_width + image_height) / 2);
 			this->pixel = pixel;
+			stdcout_mtx_ptr = cout_mtx_ptr;
 		}
 
 		void operator()(RGBTRIPLE &rgb){
@@ -47,13 +50,17 @@ class functor {
 			objects.push_back(sphere4);
 			Object sphere5(eSphere, 64, 64, 32, 16, 0x00, 0x00, 0xFF, 5);
 			objects.push_back(sphere5);
+			Object sphere6(eSphere, 128, 64, 32, 32, 0xFF, 0x00, 0xFF, 6);
+			objects.push_back(sphere6);
+			Object sphere7(eSphere, 0, 64, 32, 32, 0xFE, 0x00, 0x00, 7);
+			objects.push_back(sphere7);
 
 			// shoot primary ray into scene and search for intersection
 			Point pHit;
 			Ray nHitDir;
 			Ray primRay(*pixel - eye_position);
 			Object hit_object;
-			Object shadow_object;
+
 			float minDist = std::numeric_limits<float>::infinity();
 
 			for (auto object : objects) {
@@ -64,56 +71,41 @@ class functor {
 			}
 
 			if (hit_object.getMyType() != eUnknown) {
-
-				Ray shadowRay(light - pHit);
+				RGBTRIPLE color(hit_object.getMyColor());
+				Point pHitCopy = pHit;
+				Ray shadowRay = (light - pHitCopy);
 				float cos_theta(shadowRay.cos_theta(nHitDir));
 
 				//for debugging only, need to ensure cos_theta is valid
+
 				assert(cos_theta >= -1 && cos_theta <= 1);
 
-				// first check if we're on the "sunny side" of the object
-				if (cos_theta > 0){
-					//determine if any other objects are between light and hit object
-					primRay = (light - pHit);
-					minDist = std::numeric_limits<float>::infinity();
-					for (auto object : objects) {
-						//run Intersect algorithm again with new pixel and eye_position values
-						object.Intersect(primRay, pHit, nHitDir, minDist, shadow_object, pHit);
-					}
+				Object shadow_object;
+				Ray nHitShadowDir;
+				float minDistShadow = std::numeric_limits<float>::infinity();
+
+				for (auto object : objects) {
+					//run Intersect algorithm again with new pixel and eye_position values
+					object.Intersect(shadowRay, pHit, nHitShadowDir, minDistShadow, shadow_object, pHitCopy);
 				}
-				RGBTRIPLE color = hit_object.getMyColor();
 
-				if (shadow_object.getMyType() != eUnknown){
-					//then we're in a shadow
-					//right shift by one to divide by 2
-					float light_scale_R(color.rgbtRed >> 1);
-					float light_scale_G(color.rgbtGreen >> 1);
-					float light_scale_B(color.rgbtBlue >> 1);
-
-					rgb.rgbtRed = (cos_theta + 1.0) * light_scale_R;
-					rgb.rgbtGreen = (cos_theta + 1.0) * light_scale_G;
-					rgb.rgbtBlue = (cos_theta + 1.0) * light_scale_B;
-				} else {
-					//not in any other object's shadow.
-					//use a linear scale, based on angle between primary ray and pHit to light
-					float offset(255);
-					float light_scale_R(offset-color.rgbtRed);
-					float light_scale_G(offset-color.rgbtGreen);
-					float light_scale_B(offset-color.rgbtBlue);
-
-					rgb.rgbtRed = (uint8_t)((int)color.rgbtRed + (int)(cos_theta * light_scale_R));
-					rgb.rgbtGreen = (uint8_t)((int)color.rgbtGreen + (int)(cos_theta * light_scale_G));
-					rgb.rgbtBlue = (uint8_t)((int)color.rgbtBlue + (int)(cos_theta * light_scale_B));
+				float shift_factor(0.0);
+				if ((shadow_object.getMyType() != eUnknown) && (shadow_object.getMyID() != hit_object.getMyID())){
+					shift_factor = cos_theta * 10;
 
 				}
-				return;
+
+				rgb.rgbtRed = (uint8_t)clamp((((1.0 + cos_theta) * (float)color.rgbtRed) - shift_factor));
+				rgb.rgbtGreen = (uint8_t)clamp((((1.0 + cos_theta) * (float)color.rgbtGreen) - shift_factor));
+				rgb.rgbtBlue = (uint8_t)clamp((((1.0 + cos_theta) * (float)color.rgbtBlue) - shift_factor));
+
 			} else {
 				uint8_t temp = 0xFF;
 				rgb.rgbtRed = temp;
 				rgb.rgbtGreen = temp;
 				rgb.rgbtBlue = temp;
-				return;
 			}
+
 		}
 };
 

@@ -39,7 +39,7 @@ class Request {
 		}
 
 		void CalculatePixel(){
-			functor func1(width, height, &pixel);
+			functor func1(width, height, &pixel, cout_mtx_ptr);
 			RGBTRIPLE rgb;
 			func1(rgb);
 			(*pixels_mtx_ptr).lock();
