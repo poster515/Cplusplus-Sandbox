@@ -36,23 +36,18 @@ class functor {
 
 		void operator()(RGBTRIPLE &rgb){
 			//define position of uniform light source
-			Point light(64, 100, 32);
+			Point light(640, 1000, 320);
 
 			//this is where we define background objects
 			std::vector<Object> objects;
-//			Object sphere1(eSphere, 70, 90, 45, 50, 0x00, 0x00, 0x7F, 1);
-//			objects.push_back(sphere1);
-//			Object sphere2(eSphere, 90, 90, 20, 30, 0xFF, 0x00, 0x00, 2);
-//			objects.push_back(sphere2);
-//			Object sphere3(eSphere, 30, 30, 90, 30, 0x00, 0xFF, 0x00, 3);
-//			objects.push_back(sphere3);
-			Object sphere4(eSphere, 64, 0, 32, 32, 0x00, 0xFF, 0x00, 4);
+
+			Object sphere4(eSphere, 640, 0, 320, 320, 0x00, 0xFF, 0x00, 4);
 			objects.push_back(sphere4);
-			Object sphere5(eSphere, 64, 64, 32, 16, 0x00, 0x00, 0xFF, 5);
+			Object sphere5(eSphere, 640, 640, 320, 160, 0x00, 0x00, 0xFF, 5);
 			objects.push_back(sphere5);
-			Object sphere6(eSphere, 128, 64, 32, 32, 0xFF, 0x00, 0xFF, 6);
+			Object sphere6(eSphere, 1280, 640, 320, 320, 0xFF, 0x00, 0xFF, 6);
 			objects.push_back(sphere6);
-			Object sphere7(eSphere, 0, 64, 32, 32, 0xFE, 0x00, 0x00, 7);
+			Object sphere7(eSphere, 0, 640, 320, 320, 0xFF, 0x00, 0x00, 7);
 			objects.push_back(sphere7);
 
 			// shoot primary ray into scene and search for intersection
@@ -81,23 +76,31 @@ class functor {
 				assert(cos_theta >= -1 && cos_theta <= 1);
 
 				Object shadow_object;
+				Point pHitShadow;
 				Ray nHitShadowDir;
 				float minDistShadow = std::numeric_limits<float>::infinity();
 
 				for (auto object : objects) {
 					//run Intersect algorithm again with new pixel and eye_position values
-					object.Intersect(shadowRay, pHit, nHitShadowDir, minDistShadow, shadow_object, pHitCopy);
+					if (object.getMyID() != hit_object.getMyID()){
+						object.ShadowIntersect(shadowRay, pHitShadow, nHitShadowDir, minDistShadow, shadow_object, pHitCopy);
+					}
 				}
 
-				float shift_factor(0.0);
-				if ((shadow_object.getMyType() != eUnknown) && (shadow_object.getMyID() != hit_object.getMyID())){
-					shift_factor = cos_theta * 10;
+				float shift_factor(1.0);
+				if (shadow_object.getMyType() != eUnknown){
+					//compute ray to shadow object center, and angle to original pHit
+					Ray pHit_to_shadow_obj_cent(shadow_object.getMyCenter() - pHit);
+					float cos_theta2(nHitDir.cos_theta(pHit_to_shadow_obj_cent));
 
+					if ((cos_theta >= 0) || (cos_theta <= cos_theta2)){
+						shift_factor = 0.60;
+					}
 				}
 
-				rgb.rgbtRed = (uint8_t)clamp((((1.0 + cos_theta) * (float)color.rgbtRed) - shift_factor));
-				rgb.rgbtGreen = (uint8_t)clamp((((1.0 + cos_theta) * (float)color.rgbtGreen) - shift_factor));
-				rgb.rgbtBlue = (uint8_t)clamp((((1.0 + cos_theta) * (float)color.rgbtBlue) - shift_factor));
+				rgb.rgbtRed = (uint8_t)(shift_factor * clamp((1.0 + (cos_theta*shift_factor)) * (float)color.rgbtRed / 2.0));
+				rgb.rgbtGreen = (uint8_t)(shift_factor * clamp((1.0 + (cos_theta*shift_factor)) * (float)color.rgbtGreen / 2.0));
+				rgb.rgbtBlue = (uint8_t)(shift_factor * clamp((1.0 + (cos_theta*shift_factor)) * (float)color.rgbtBlue / 2.0));
 
 			} else {
 				uint8_t temp = 0xFF;

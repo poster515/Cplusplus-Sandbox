@@ -34,12 +34,12 @@ void Worker::Run(){
 			//now increment total_pixels calculated
 			(*Dispatcher::count_mtx_ptr).lock();
 			++Dispatcher::count;
-			std::cout << "worker completed request. tid = "
-					<< std::this_thread::get_id()
-					<< ", y = " << (*my_req).get_y()
-					<< ", x = " << (*my_req).get_x()
-					<< ", count = " << Dispatcher::count
-					<< std::endl;
+//			std::cout << "worker completed request. tid = "
+//					<< std::this_thread::get_id()
+//					<< ", y = " << (*my_req).get_y()
+//					<< ", x = " << (*my_req).get_x()
+//					<< ", count = " << Dispatcher::count
+//					<< std::endl;
 			(*Dispatcher::count_mtx_ptr).unlock();
 
 			//delete this request since it's now complete

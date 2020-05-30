@@ -98,12 +98,6 @@ struct Ray{
 		return *this;
 	}
 
-//	Ray& operator=(Ray&& R){
-//		this->A = R.A;
-//		this->B = R.B;
-//		this->C = R.C;
-//		return *this;
-//	}
 	Ray& operator=(const Ray &R){
 		this->A = R.A;
 		this->B = R.B;

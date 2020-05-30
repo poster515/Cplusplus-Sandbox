@@ -43,8 +43,8 @@ int main() {
 	#endif
 
 	//set image parameters
-	const int height = 128; //in pixels
-	const int width = 128;  //in pixels
+	const int height = 1280; //in pixels
+	const int width = 1280;  //in pixels
 	const short int bitsPerPixel = 24; //0x1800
 
 	//initialize new BMP file

@@ -56,12 +56,12 @@ class Object {
 
 			//inputs:
 
-			//Point *pixel: 		Point (i.e., pixel) that we're writing to (address of Request's pixel)
+			//Ray &primRay: 		Ray from eye position to pixel of interest
 			//Point &pHit: 			Point where ray hits object, if applicable
 			//Ray &nHitDir:			unit ray that is normal to object, where primary ray hits this object
 			//float &minDist: 		current magnitude of distance to closest object
 			//Object &minObject: 	current closest object
-			//Point &primRayOrigin:	origin of primary ray.
+			//Point &primRayOrigin:	eye position.
 
 			// first, compute primary ray and directional vector
 			float PR_mag(std::sqrt(std::pow(primRay.A, 2.0) + std::pow(primRay.B, 2.0) + std::pow(primRay.C, 2.0)));
@@ -73,7 +73,6 @@ class Object {
 			Ray E2O_dir(E2O / E2O_mag);
 
 			//determine cosine of angle between eye-to-pixel and eye-to-center rays
-//			float cos_theta(primRay_dir.dot(E2O_dir));
 			float cos_theta(primRay.cos_theta(E2O));
 
 			//now compute right-angle length between primary ray and eye-to-object
@@ -103,11 +102,80 @@ class Object {
 							float nHit_mag(std::sqrt(std::pow(nHit.A, 2.0) + std::pow(nHit.B, 2.0) + std::pow(nHit.C, 2.0)));
 							nHitDir = nHit / nHit_mag;
 						}
-					} else {
-//						minObject.setMyType(eUnknown);
-//						minObject.setMyID(0);
 					}
+					break;
+				case(eCube):
+					//calculate distance to Point p using Cartesian equation
 
+					break;
+				case(eUnknown):
+					//give some default distance
+
+					break;
+			}
+
+		}
+		void ShadowIntersect(Ray &primRay, Point &pHit, Ray &nHitDir, float &minDist, Object &minObject, Point &primRayOrigin){
+			//basically determine whether primary ray falls within radius of object
+			//need to determine if primary ray hits this object, and if so, whether it is closer than
+			//current closest object
+
+			//inputs:
+
+			//Ray &primRay: 		Ray from primRayOrigin to light source
+			//Point &pHit: 			Point where ray hits object
+			//Ray &nHitDir:			unit ray that is normal to object, where primary ray hits this object
+			//float &minDist: 		current magnitude of distance to closest object
+			//Object &minObject: 	current closest object
+			//Point &primRayOrigin:	origin of primary ray.
+
+			// first, compute primary ray and directional vector
+			float PR_mag(std::sqrt(std::pow(primRay.A, 2.0) + std::pow(primRay.B, 2.0) + std::pow(primRay.C, 2.0)));
+			Ray primRay_dir(primRay / PR_mag);
+
+			//next, ray from eye to object and directional vector
+			Ray E2O(center - primRayOrigin);
+			float E2O_mag(std::sqrt(std::pow(E2O.A, 2.0) + std::pow(E2O.B, 2.0) + std::pow(E2O.C, 2.0)));
+			Ray E2O_dir(E2O / E2O_mag);
+
+			//determine cosine of angle between eye-to-pixel and eye-to-center rays
+			float cos_theta(primRay.cos_theta(E2O));
+
+			//now compute right-angle length between primary ray and eye-to-object
+			float RAR_sine(E2O_mag * std::sqrt(1 - std::pow(cos_theta, 2.0)));
+
+			//also compute the corresponding length of ray that makes right angle with "length"
+			float RAR_cosine(E2O_mag * cos_theta);
+
+			//compute distance from right-angle-ray to the edge of the sphere, only if it hits the sphere
+			float RAR_sine_to_sph_edge = 0.0;
+			if (RAR_sine < radius){
+				RAR_sine_to_sph_edge = std::sqrt(std::pow(radius,2.0) - std::pow(RAR_sine, 2.0));
+			}
+
+			switch(my_type){
+				case(eSphere):
+					if (RAR_sine <= (radius + epsilon)){
+						//then we're inside the sphere somewhere
+						float hit_distance(RAR_cosine - RAR_sine_to_sph_edge);
+						if (hit_distance > PR_mag){
+							//then we've hit this object along the shadow ray,
+							//but the object is past the light source.
+							//therefore, return from this function.
+							return;
+						}
+
+						if (hit_distance < minDist){
+							minDist = hit_distance;
+							minObject = *this;
+							pHit = (primRay_dir * hit_distance) + primRayOrigin;
+
+							//now compute unit directional vector normal to the surface
+							Ray nHit(pHit - center);
+							float nHit_mag(std::sqrt(std::pow(nHit.A, 2.0) + std::pow(nHit.B, 2.0) + std::pow(nHit.C, 2.0)));
+							nHitDir = nHit / nHit_mag;
+						}
+					}
 					break;
 				case(eCube):
 					//calculate distance to Point p using Cartesian equation
@@ -131,6 +199,9 @@ class Object {
 
 		int getMyID(){
 			return id;
+		}
+		Point getMyCenter(){
+			return center;
 		}
 
 		void setMyType(eObjectTypes type){
